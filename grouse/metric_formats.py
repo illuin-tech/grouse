@@ -50,3 +50,12 @@ class PositiveAcceptance(BaseModel):
 
 class NegativeRejection(BaseModel):
     negative_rejection: Optional[int]
+
+
+class GroundedQAEvaluationReport(BaseModel):
+    answer_relevancy: float
+    completeness: float
+    faithfulness: float
+    usefulness: float
+    positive_acceptance: float
+    negative_rejection: float
