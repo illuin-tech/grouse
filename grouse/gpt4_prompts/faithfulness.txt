@@ -1,0 +1,64 @@
+[TASK]
+Task: Grounded Question Answering
+Based solely on the content of the references, the objective is to generate a response to the user's query. Each statement must be followed by
+the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should
+begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+[/TASK]
+[EVALUATION INSTRUCTIONS]
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user request.
+I want you to assign to each answer a boolean faithfulness grade. An answer is faithful if:
+- Each statement made by the answer is followed by a source indicating the reference from which it is drawn.
+- The information preceding the source is indeed from the corresponding reference.
+- The information preceding the source is in agreement with the corresponding reference, and does not assert facts different from those
+indicated in the reference.
+In all other cases, the response is considered non-faithful.
+Faithfulness is also considered non-measurable if the answer asserts that no document responds to the question, and it does not provide any related information, it is then `null`.
+
+Rating scale:
+null - The answer asserts that no document responds to the question, and does not provide any related information.
+1 - All sentences in the answer cite their sources, and are in agreement with the cited sources.
+0 - At least one sentence in the response does not cite its sources, or cites a wrong source, or modifies the content from the references, or asserts something that is not supported by the cited references.
+
+Before assigning each grade, you will start by verifying that the answer does not only assert "No document responds...", without any other information. If this is the case, then faithfulness must be `null`. Otherwise, I want you to analyze by explaining for each sentence, one after the other, if 1) a reference follows the sentence, 2) the reference following the sentence is correct, and 3) if the sentence does not distort or modify the content of the references. Your response should be in JSON format, respecting the following format:
+{
+    "answer_1": {
+        "answer_only_asserts_no_document_answers": X,
+        "content_analysis_sentence_by_sentence": [
+            {
+                "sentence": "...",
+                "criterion_1": "...",
+                "criterion_2": "...",
+                "criterion_3": "..."
+            },
+            ...
+        ],
+        "faithfulness_justification": "...",
+        "faithfulness": Y
+    },
+    "answer_2": {
+        "answer_only_asserts_no_document_answers": X,
+        "content_analysis_sentence_by_sentence": [
+            {
+            "sentence": "...",
+            "criterion_1": "...",
+            "criterion_2": "...",
+            "criterion_3": "..."
+            },
+            ...
+        ],
+        "faithfulness_justification": "...",
+        "faithfulness": Y
+    }
+}
+Where "..." is a string, X is a boolean, and Y is either a boolean or `null`.
+[/EVALUATION INSTRUCTIONS]
+[SAMPLE]
+List of references :
+{%- for context in contexts %}
+Reference {{ loop.index }}: {{ context }}
+{%- endfor %}
+[/SAMPLE]
+[TO EVALUATE]
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+[/TO EVALUATE]

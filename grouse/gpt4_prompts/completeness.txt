@@ -1,0 +1,45 @@
+[TASK]
+Task: Grounded Question Answering
+Based solely on the content of the references, the objective is to generate a response to the user's query. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+[/TASK]
+[EVALUATION INSTRUCTIONS]
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user request.
+I want you to assign to each answer a completeness grade between 1 and 5:
+- The only condition for an answer to be complete is the presence in it of at least all the information from the references that are relevant to the question asked.
+- The presence of unrelated information in the answer does not impact completeness.
+- The presence of information in the answer not from the references does not impact completeness.
+- Possible errors in the sources citing the references do not impact completeness.
+- Completeness cannot be evaluated if the references contain no information that can precisely answer the user request, in which case the grade takes the value `null`.
+
+Rating scale:
+null - The references contained no relevant information to precisely answer the user's question. In this case, there is no need to read the content of the answer to know that the grade is `null`.
+5 - The answer is very complete, it contains all the relevant information from the references. No essential information is omitted, ensuring complete coverage of the question asked.
+4 - The answer covers most of the relevant information in depth. It integrates the references satisfactorily, covering the majority of key points. Some details may be missing, but overall, the answer is substantial.
+3 - The answer reasonably addresses a number of relevant aspects. It integrates part of the necessary information from the references. However, gaps remain, impacting the overall completeness.
+2 - The answer only covers a minimal part of the relevant information. It misses several important information from the references.
+1 - The answer covers none of the relevant information, all relevant information from the references has been omitted in the answer.
+
+Before assigning each grade, you will always start by analyzing the information found in the references that are relevant to the user request. If there is no relevant information in the references, completeness must be `null`. If there are relevant information in the references, you will analyze which portion of this information is present or absent in the answers to evaluate the completeness grade. Your response should be in JSON format, respecting the following format:
+{
+    "answer_1": {
+        "completeness_justification": "...",
+        "completeness": X
+    },
+    "answer_2": {
+        "completeness_justification": "...",
+        "completeness": X
+    }
+}
+Where "..." is a string, and X is an integer between 1 and 5 or `null`.
+[/EVALUATION INSTRUCTIONS]
+[SAMPLE]
+List of references :
+{%- for context in contexts %}
+Reference {{ loop.index }}: {{ context }}
+{%- endfor %}
+User request: {{ input }}
+[/SAMPLE]
+[TO EVALUATE]
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+[/TO EVALUATE]
