@@ -1,12 +1,15 @@
 from dataclasses import dataclass
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 
 class AnswerRelevancy(BaseModel):
     answer_affirms_no_document_answers: bool
     answer_relevancy_justification: str
-    answer_relevancy: Optional[int]
+    answer_relevancy: Field(
+        type=Optional[int],
+        description="Relevancy score of the answer from 1 to 5 or None",
+    )
 
 
 class AnswerRelevancyPair(BaseModel):
@@ -16,7 +19,10 @@ class AnswerRelevancyPair(BaseModel):
 
 class Completeness(BaseModel):
     completeness_justification: str
-    completeness: Optional[int]
+    completeness: Field(
+        type=Optional[int],
+        description="Completeness score of the answer from 1 to 5 or None",
+    )
 
 
 class CompletenessPair(BaseModel):
@@ -26,7 +32,10 @@ class CompletenessPair(BaseModel):
 
 class Faithfulness(BaseModel):
     faithfulness_justification: str
-    faithfulness: Optional[int]
+    faithfulness: Field(
+        type=Optional[int],
+        description="Faithfulness score of the answer in 0, 1 or None",
+    )
 
 
 class FaithfulnessPair(BaseModel):
@@ -36,7 +45,9 @@ class FaithfulnessPair(BaseModel):
 
 class Usefulness(BaseModel):
     usefulness_justification: str
-    usefulness: Optional[int]
+    usefulness: Field(
+        type=Optional[int], description="Usefulness score of the answer in 0, 1 or None"
+    )
 
 
 class UsefulnessPair(BaseModel):
@@ -45,11 +56,17 @@ class UsefulnessPair(BaseModel):
 
 
 class PositiveAcceptance(BaseModel):
-    positive_acceptance: Optional[int]
+    positive_acceptance: Field(
+        type=Optional[int],
+        description="Positive acceptance score of the answer in 0, 1 or None",
+    )
 
 
 class NegativeRejection(BaseModel):
-    negative_rejection: Optional[int]
+    negative_rejection: Field(
+        type=Optional[int],
+        description="Negative rejection score of the answer in 0, 1 or None",
+    )
 
 
 class GroundedQAEvaluationReport(BaseModel):
