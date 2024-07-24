@@ -14,6 +14,8 @@ from grouse.metric_formats import (
     Completeness,
     Faithfulness,
     Usefulness,
+    PositiveAcceptance,
+    NegativeRejection,
     AnswerRelevancyPair,
     CompletenessPair,
     FaithfulnessPair,
@@ -21,6 +23,7 @@ from grouse.metric_formats import (
 )
 
 MODEL_NAME = "gpt-4"
+NO_ANWER_STR = "no document seems to precisely answer your question"
 
 
 @dataclass
@@ -29,6 +32,8 @@ class GroundedQAEvaluation:
     completeness: Completeness
     faithfulness: Faithfulness
     usefulness: Usefulness
+    positive_aceptance: PositiveAcceptance
+    negative_rejection: NegativeRejection
 
 
 class EvaluationSample(BaseModel):
@@ -117,6 +122,30 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
         )
         return pair.answer_2
 
+    def measure_positive_acceptance(
+        self, eval_sample: EvaluationSample
+    ) -> PositiveAcceptance:
+        pred_rejected = NO_ANWER_STR in eval_sample.actual_output
+        expected_rejected = NO_ANWER_STR in eval_sample.expected_output
+        if not pred_rejected and not expected_rejected:
+            return PositiveAcceptance(positive_acceptance=1)
+        elif pred_rejected and not expected_rejected:
+            return PositiveAcceptance(positive_acceptance=0)
+        else:
+            return PositiveAcceptance(positive_acceptance=None)
+
+    def measure_negative_rejection(
+        self, eval_sample: EvaluationSample
+    ) -> PositiveAcceptance:
+        pred_rejected = NO_ANWER_STR in eval_sample.actual_output
+        expected_rejected = NO_ANWER_STR in eval_sample.expected_output
+        if pred_rejected and expected_rejected:
+            return NegativeRejection(negative_rejection=1)
+        elif not pred_rejected and expected_rejected:
+            return NegativeRejection(negative_rejection=0)
+        else:
+            return NegativeRejection(negative_rejection=None)
+
     async def measure(self, eval_sample: EvaluationSample) -> GroundedQAEvaluation:
         answer_relevancy = await self.measure_answer_relevancy(eval_sample)
         completeness = await self.measure_completeness(eval_sample)
@@ -132,8 +161,16 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
         else:
             usefulness = Usefulness(usefulness_justification="", usefulness=None)
             faithfulness = await self.measure_faithfulness(eval_sample)
+
+        positive_acceptance = self.measure_positive_acceptance(eval_sample)
+        negative_rejection = self.measure_negative_rejection(eval_sample)
         return GroundedQAEvaluation(
-            answer_relevancy, completeness, faithfulness, usefulness
+            answer_relevancy,
+            completeness,
+            faithfulness,
+            usefulness,
+            positive_acceptance,
+            negative_rejection,
         )
 
     async def async_evaluate(

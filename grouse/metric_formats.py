@@ -42,3 +42,11 @@ class Usefulness(BaseModel):
 class UsefulnessPair(BaseModel):
     answer_1: Usefulness
     answer_2: Usefulness
+
+
+class PositiveAcceptance(BaseModel):
+    positive_acceptance: Optional[int]
+
+
+class NegativeRejection(BaseModel):
+    negative_rejection: Optional[int]
