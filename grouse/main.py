@@ -5,6 +5,7 @@ from json import JSONEncoder
 import math
 import os
 from typing import List, Tuple
+from datasets import load_dataset
 
 from grouse.dtos import EvaluationSample, MetaTestCase, ExpectedGroundedQAEvaluation
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
@@ -29,22 +30,21 @@ class NanConverter(JSONEncoder):
         return super().iterencode(nan_to_none(obj), *args, **kwargs)
 
 
-def load_unit_tests(
-    dataset_path: str,
-) -> Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]:
+def load_unit_tests() -> Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]:
+    unit_tests = load_dataset("illuin/grouse")["test"]
     evaluation_samples = []
     conditions = []
-    with jsonlines.open(dataset_path) as reader:
-        for obj in reader:
-            evaluation_samples.append(
-                EvaluationSample(
-                    input=obj["input"],
-                    actual_output=obj["actual_output"],
-                    expected_output=obj["expected_output"],
-                    references=obj["references"],
-                )
+
+    for unit_test in unit_tests:
+        evaluation_samples.append(
+            EvaluationSample(
+                input=unit_test["input"],
+                actual_output=unit_test["actual_output"],
+                expected_output=unit_test["expected_output"],
+                references=unit_test["references"],
             )
-            conditions.append(ExpectedGroundedQAEvaluation(**obj["conditions"]))
+        )
+        conditions.append(ExpectedGroundedQAEvaluation(**unit_test["conditions"]))
     return evaluation_samples, conditions
 
 
@@ -79,11 +79,10 @@ def evaluate(dataset_path: str, output_dir_path: str):
 
 
 @cli.command()
-@click.argument("dataset_path", type=str)
 @click.argument("model_name", type=str)
 @click.argument("output_dir_path", type=str)
-def meta_evaluate(dataset_path: str, model_name: str, output_dir_path: str):
-    evaluation_samples, conditions = load_unit_tests(dataset_path)
+def meta_evaluate(model_name: str, output_dir_path: str):
+    evaluation_samples, conditions = load_unit_tests()
 
     evaluator = GroundedQAEvaluator(model_name)
     evaluations = evaluator.evaluate_multiple_samples(evaluation_samples)
