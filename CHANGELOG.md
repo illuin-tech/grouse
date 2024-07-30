@@ -4,4 +4,5 @@
 
 ### Added
 
-- Created `GPT4GroundedQAEvaluator` that evaluates four metrics per sample: answer relevancy, completeness, faithfulness, usefulness, negative rejection and positive acceptance.
+- Created `GroundedQAEvaluator` that evaluates four metrics per sample: answer relevancy, completeness, faithfulness, usefulness, negative rejection and positive acceptance.
+- Created `MetaEvaluator` to evaluate evaluators on GroUSE unit tests.
