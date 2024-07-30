@@ -86,15 +86,30 @@ class MetaEvaluator:
 
     def evaluate(self, test_cases: list[MetaTestCase]) -> list[MetaTestCaseResult]:
         meta_evaluations = self.evaluate_multiple_test_cases(test_cases)
-        ar_success = float(sum([int(e.answer_relevancy) for e in meta_evaluations]) / len(
-            meta_evaluations
-        ))
-        c_success = float(sum([int(e.completeness) for e in meta_evaluations]) / len(meta_evaluations))
-        f_success = float(sum([int(e.faithfulness) for e in meta_evaluations]) / len(meta_evaluations))
-        u_success = float(sum([int(e.usefulness) for e in meta_evaluations]) / len(meta_evaluations))
-        pa_success = float(sum([int(e.positive_acceptance) for e in meta_evaluations]) / len(meta_evaluations))
-        nr_success = float(sum([int(e.negative_rejection) for e in meta_evaluations]) / len(meta_evaluations))
-        total = (ar_success + c_success + f_success + u_success + pa_success + nr_success) / 6
+        ar_success = float(
+            sum([int(e.answer_relevancy) for e in meta_evaluations])
+            / len(meta_evaluations)
+        )
+        c_success = float(
+            sum([int(e.completeness) for e in meta_evaluations]) / len(meta_evaluations)
+        )
+        f_success = float(
+            sum([int(e.faithfulness) for e in meta_evaluations]) / len(meta_evaluations)
+        )
+        u_success = float(
+            sum([int(e.usefulness) for e in meta_evaluations]) / len(meta_evaluations)
+        )
+        pa_success = float(
+            sum([int(e.positive_acceptance) for e in meta_evaluations])
+            / len(meta_evaluations)
+        )
+        nr_success = float(
+            sum([int(e.negative_rejection) for e in meta_evaluations])
+            / len(meta_evaluations)
+        )
+        total = (
+            ar_success + c_success + f_success + u_success + pa_success + nr_success
+        ) / 6
         return MetaEvaluationsAndReport(
             evaluations=meta_evaluations,
             report=MetaEvalReport(

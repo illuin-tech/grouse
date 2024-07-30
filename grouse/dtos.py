@@ -66,7 +66,6 @@ class GroundedQAEvaluationReport(BaseModel):
     mean: float
 
 
-
 class GroundedQAEvaluation(BaseModel):
     answer_relevancy: AnswerRelevancy
     completeness: Completeness

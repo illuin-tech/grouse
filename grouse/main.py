@@ -30,7 +30,9 @@ class NanConverter(JSONEncoder):
         return super().iterencode(nan_to_none(obj), *args, **kwargs)
 
 
-def load_unit_tests() -> Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]:
+def load_unit_tests() -> (
+    Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]
+):
     unit_tests = load_dataset("illuin/grouse")["test"]
     evaluation_samples = []
     conditions = []
@@ -116,7 +118,3 @@ def meta_evaluate(model_name: str, output_dir_path: str):
     ) as writer:
         for evaluation in meta_evaluations.evaluations:
             writer.write(evaluation.model_dump(mode="json"))
-
-
-if __name__ == "__main__":
-    cli()
