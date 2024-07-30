@@ -1,12 +1,14 @@
-import pytest
 from typing import Optional
+
+import pytest
 
 from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
 from grouse.utils import get_positive_acceptance_negative_rejection, load_unit_tests
 
 
 @pytest.mark.parametrize(
-    "answer_relevancy, completeness, expected_positive_acceptance, expected_negative_rejection",
+    "answer_relevancy, completeness, "
+    "expected_positive_acceptance, expected_negative_rejection",
     [
         [None, None, 1, 1],
         [None, 5, 0, None],

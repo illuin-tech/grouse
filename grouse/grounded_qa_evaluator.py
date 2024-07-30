@@ -1,27 +1,29 @@
+import asyncio
 from typing import List
-from jinja2 import Environment, FileSystemLoader
-import litellm
+
+import aiohttp
 import instructor
-import aiohttp, asyncio
-from tqdm.asyncio import tqdm
+import litellm
 import numpy as np
+from jinja2 import Environment, FileSystemLoader
+from tqdm.asyncio import tqdm
 
 from grouse.dtos import (
     AnswerRelevancy,
-    Completeness,
-    Faithfulness,
-    Usefulness,
     AnswerRelevancyPair,
+    Completeness,
     CompletenessPair,
-    FaithfulnessPair,
-    UsefulnessPair,
-    GroundedQAEvaluationReport,
     EvaluationSample,
-    GroundedQAEvaluation,
     EvaluationsAndReport,
+    Faithfulness,
+    FaithfulnessPair,
+    GroundedQAEvaluation,
+    GroundedQAEvaluationReport,
+    Usefulness,
+    UsefulnessPair,
 )
-from grouse.llm_calls.tracker import Tracker
 from grouse.llm_calls.cached_instructor import CachedAsyncInstructor
+from grouse.llm_calls.tracker import Tracker
 from grouse.utils import get_positive_acceptance_negative_rejection
 
 

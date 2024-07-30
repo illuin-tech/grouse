@@ -1,8 +1,9 @@
-from typing import Any, List, Optional, Tuple
 import math
 from json import JSONEncoder
+from typing import Any, List, Optional, Tuple
 
 from datasets import load_dataset
+
 from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
 
 DATASET_NAME = "illuin/grouse"

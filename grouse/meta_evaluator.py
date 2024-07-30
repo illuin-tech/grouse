@@ -1,10 +1,10 @@
 from typing import List, Optional
 
 from grouse.dtos import (
-    MetaTestCase,
-    MetaTestCaseResult,
     MetaEvalReport,
     MetaEvaluationsAndReport,
+    MetaTestCase,
+    MetaTestCaseResult,
 )
 from grouse.utils import get_positive_acceptance_negative_rejection
 
@@ -25,7 +25,7 @@ class MetaEvaluator:
             return value < float(condition[1:])
         elif condition[:2] == "==":
             if condition[2:] == "None":
-                return value == None
+                return value is None
             else:
                 return value == float(condition[2:])
         else:

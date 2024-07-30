@@ -1,16 +1,15 @@
-import pytest
 import asyncio
 
+from grouse import EvaluationSample, GroundedQAEvaluator
 from grouse.dtos import (
     AnswerRelevancy,
     Completeness,
+    EvaluationsAndReport,
     Faithfulness,
-    Usefulness,
     GroundedQAEvaluation,
     GroundedQAEvaluationReport,
-    EvaluationsAndReport,
+    Usefulness,
 )
-from grouse import GroundedQAEvaluator, EvaluationSample
 
 TEST_MODEL = "gpt-4o-mini"
 

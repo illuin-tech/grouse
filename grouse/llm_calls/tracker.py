@@ -1,9 +1,9 @@
+import logging
+import sys
 from typing import Optional
 
 import litellm
 from litellm.integrations.custom_logger import CustomLogger
-import logging
-import sys
 
 
 class Tracker:

@@ -45,6 +45,7 @@ check-deps:
 reformat:
     black --preview ./
     ruff format .
+    ruff check --fix .
 
 # Print a coverage report
 print-cov-report:

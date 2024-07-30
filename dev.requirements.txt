@@ -6,4 +6,3 @@ pytest==8.3.1
 black==24.4.2
 coverage==7.6.0
 types-tqdm==4.66.0
-mypy==1.11.0

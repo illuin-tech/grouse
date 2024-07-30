@@ -1,7 +1,8 @@
-import click
-import jsonlines
 import json
 import os
+
+import click
+import jsonlines
 
 from grouse.dtos import EvaluationSample, MetaTestCase
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
