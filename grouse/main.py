@@ -10,14 +10,14 @@ from grouse.utils import NanConverter, load_unit_tests
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.command()
 @click.argument("dataset_path", type=str)
 @click.argument("output_dir_path", type=str)
-def evaluate(dataset_path: str, output_dir_path: str):
+def evaluate(dataset_path: str, output_dir_path: str) -> None:
     evaluator = GroundedQAEvaluator()
     eval_samples = []
     with jsonlines.open(dataset_path) as reader:
@@ -42,7 +42,7 @@ def evaluate(dataset_path: str, output_dir_path: str):
 @cli.command()
 @click.argument("model_name", type=str)
 @click.argument("output_dir_path", type=str)
-def meta_evaluate(model_name: str, output_dir_path: str):
+def meta_evaluate(model_name: str, output_dir_path: str) -> None:
     evaluation_samples, conditions = load_unit_tests()
 
     evaluator = GroundedQAEvaluator(model_name)

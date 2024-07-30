@@ -1,4 +1,5 @@
 import pytest
+from typing import Optional
 
 from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
 from grouse.utils import get_positive_acceptance_negative_rejection, load_unit_tests
@@ -14,17 +15,17 @@ from grouse.utils import get_positive_acceptance_negative_rejection, load_unit_t
     ],
 )
 def test_get_positive_acceptance_negative_rejection(
-    answer_relevancy,
-    completeness,
-    expected_positive_acceptance,
-    expected_negative_rejection,
-):
+    answer_relevancy: Optional[int],
+    completeness: Optional[int],
+    expected_positive_acceptance: Optional[int],
+    expected_negative_rejection: Optional[int],
+) -> None:
     pa, nr = get_positive_acceptance_negative_rejection(answer_relevancy, completeness)
     assert pa == expected_positive_acceptance
     assert nr == expected_negative_rejection
 
 
-def test_load_unit_tests():
+def test_load_unit_tests() -> None:
     samples, conditions = load_unit_tests()
     assert isinstance(samples, list)
     assert isinstance(conditions, list)

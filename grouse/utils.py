@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Any, List, Optional, Tuple
 import math
 from json import JSONEncoder
 
@@ -8,7 +8,7 @@ from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
 DATASET_NAME = "illuin/grouse"
 
 
-def nan_to_none(obj):
+def nan_to_none(obj: Any) -> Any:
     if isinstance(obj, dict):
         return {k: nan_to_none(v) for k, v in obj.items()}
     elif isinstance(obj, list):
@@ -19,14 +19,16 @@ def nan_to_none(obj):
 
 
 class NanConverter(JSONEncoder):
-    def encode(self, obj, *args, **kwargs):
+    def encode(self, obj: Any, *args, **kwargs) -> Any:
         return super().encode(nan_to_none(obj), *args, **kwargs)
 
-    def iterencode(self, obj, *args, **kwargs):
+    def iterencode(self, obj: Any, *args, **kwargs) -> Any:
         return super().iterencode(nan_to_none(obj), *args, **kwargs)
 
 
-def get_positive_acceptance_negative_rejection(answer_relevancy, completeness):
+def get_positive_acceptance_negative_rejection(
+    answer_relevancy: Optional[int], completeness: Optional[int]
+) -> Tuple[Optional[int], Optional[int]]:
     if answer_relevancy is None:
         if completeness is None:
             positive_acceptance = 1

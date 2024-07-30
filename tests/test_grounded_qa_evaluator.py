@@ -19,7 +19,7 @@ class TestGroundedQAEvaluator:
     def setup_method(self) -> None:
         self.evaluator = GroundedQAEvaluator(model_name=TEST_MODEL)
 
-    def test_evaluate_answer_relevancy(self):
+    def test_evaluate_answer_relevancy(self) -> None:
         ar = asyncio.run(
             self.evaluator.evaluate_answer_relevancy(
                 eval_sample=EvaluationSample(
@@ -36,7 +36,7 @@ class TestGroundedQAEvaluator:
         assert isinstance(ar.answer_relevancy, int)
         assert ar.answer_relevancy == 5
 
-    def test_evaluate_completeness(self):
+    def test_evaluate_completeness(self) -> None:
         comp = asyncio.run(
             self.evaluator.evaluate_completeness(
                 eval_sample=EvaluationSample(
@@ -52,7 +52,7 @@ class TestGroundedQAEvaluator:
         assert isinstance(comp.completeness, int)
         assert comp.completeness == 5
 
-    def test_evaluate_faithfulness(self):
+    def test_evaluate_faithfulness(self) -> None:
         faith = asyncio.run(
             self.evaluator.evaluate_faithfulness(
                 eval_sample=EvaluationSample(
@@ -68,7 +68,7 @@ class TestGroundedQAEvaluator:
         assert isinstance(faith.faithfulness, int)
         assert faith.faithfulness == 1
 
-    def test_evaluate_usefulness(self):
+    def test_evaluate_usefulness(self) -> None:
         usef = asyncio.run(
             self.evaluator.evaluate_usefulness(
                 eval_sample=EvaluationSample(
@@ -83,7 +83,7 @@ class TestGroundedQAEvaluator:
         assert isinstance(usef.usefulness_justification, str)
         assert usef.usefulness is None
 
-    def test_evaluate_single_sample(self):
+    def test_evaluate_single_sample(self) -> None:
         evaluation = asyncio.run(
             self.evaluator.evaluate_single_sample(
                 eval_sample=EvaluationSample(
@@ -96,7 +96,7 @@ class TestGroundedQAEvaluator:
         )
         assert isinstance(evaluation, GroundedQAEvaluation)
 
-    def test_evaluate(self):
+    def test_evaluate(self) -> None:
         eval_samples = [
             EvaluationSample(
                 input="Quel est la capitale de la France ?",

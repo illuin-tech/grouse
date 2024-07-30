@@ -28,8 +28,8 @@ from grouse.utils import get_positive_acceptance_negative_rejection
 class GroundedQAEvaluator:
     def __init__(
         self,
-        model_name="gpt-4",
-        prompts_path="grouse/gpt4_prompts",
+        model_name: str = "gpt-4",
+        prompts_path: str = "grouse/gpt4_prompts",
     ):
         self.model_name = model_name
         self.environment = Environment(loader=FileSystemLoader(prompts_path))

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from grouse.dtos import (
     MetaTestCase,
@@ -10,18 +10,18 @@ from grouse.utils import get_positive_acceptance_negative_rejection
 
 
 class MetaEvaluator:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @staticmethod
     def compare(value: Optional[float], condition: str) -> bool:
-        if condition[:2] == ">=":
+        if value is not None and condition[:2] == ">=":
             return value >= float(condition[2:])
-        elif condition[:2] == "<=":
+        elif value is not None and condition[:2] == "<=":
             return value <= float(condition[2:])
-        elif condition[:1] == ">":
+        elif value is not None and condition[:1] == ">":
             return value > float(condition[1:])
-        elif condition[:1] == "<":
+        elif value is not None and condition[:1] == "<":
             return value < float(condition[1:])
         elif condition[:2] == "==":
             if condition[2:] == "None":
@@ -81,10 +81,10 @@ class MetaEvaluator:
 
     def evaluate_multiple_test_cases(
         self, test_cases: list[MetaTestCase]
-    ) -> MetaEvalReport:
+    ) -> List[MetaTestCaseResult]:
         return [self.evaluate_single_test_case(test_case) for test_case in test_cases]
 
-    def evaluate(self, test_cases: list[MetaTestCase]) -> list[MetaTestCaseResult]:
+    def evaluate(self, test_cases: List[MetaTestCase]) -> MetaEvaluationsAndReport:
         meta_evaluations = self.evaluate_multiple_test_cases(test_cases)
         ar_success = float(
             sum([int(e.answer_relevancy) for e in meta_evaluations])
