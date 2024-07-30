@@ -1,3 +1,31 @@
+from typing import List, Tuple
+import math
+from json import JSONEncoder
+
+from datasets import load_dataset
+from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
+
+DATASET_NAME = "illuin/grouse"
+
+
+def nan_to_none(obj):
+    if isinstance(obj, dict):
+        return {k: nan_to_none(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [nan_to_none(v) for v in obj]
+    elif isinstance(obj, float) and math.isnan(obj):
+        return None
+    return obj
+
+
+class NanConverter(JSONEncoder):
+    def encode(self, obj, *args, **kwargs):
+        return super().encode(nan_to_none(obj), *args, **kwargs)
+
+    def iterencode(self, obj, *args, **kwargs):
+        return super().iterencode(nan_to_none(obj), *args, **kwargs)
+
+
 def get_positive_acceptance_negative_rejection(answer_relevancy, completeness):
     if answer_relevancy is None:
         if completeness is None:
@@ -14,3 +42,23 @@ def get_positive_acceptance_negative_rejection(answer_relevancy, completeness):
             positive_acceptance = None
             negative_rejection = None
     return positive_acceptance, negative_rejection
+
+
+def load_unit_tests() -> (
+    Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]
+):
+    unit_tests = load_dataset(DATASET_NAME)["test"]
+    evaluation_samples = []
+    conditions = []
+
+    for unit_test in unit_tests:
+        evaluation_samples.append(
+            EvaluationSample(
+                input=unit_test["input"],
+                actual_output=unit_test["actual_output"],
+                expected_output=unit_test["expected_output"],
+                references=unit_test["references"],
+            )
+        )
+        conditions.append(ExpectedGroundedQAEvaluation(**unit_test["conditions"]))
+    return evaluation_samples, conditions

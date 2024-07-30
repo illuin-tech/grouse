@@ -1,53 +1,12 @@
 import click
 import jsonlines
 import json
-from json import JSONEncoder
-import math
 import os
-from typing import List, Tuple
-from datasets import load_dataset
 
-from grouse.dtos import EvaluationSample, MetaTestCase, ExpectedGroundedQAEvaluation
+from grouse.dtos import EvaluationSample, MetaTestCase
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
 from grouse.meta_evaluator import MetaEvaluator
-
-
-def nan_to_none(obj):
-    if isinstance(obj, dict):
-        return {k: nan_to_none(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [nan_to_none(v) for v in obj]
-    elif isinstance(obj, float) and math.isnan(obj):
-        return None
-    return obj
-
-
-class NanConverter(JSONEncoder):
-    def encode(self, obj, *args, **kwargs):
-        return super().encode(nan_to_none(obj), *args, **kwargs)
-
-    def iterencode(self, obj, *args, **kwargs):
-        return super().iterencode(nan_to_none(obj), *args, **kwargs)
-
-
-def load_unit_tests() -> (
-    Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]
-):
-    unit_tests = load_dataset("illuin/grouse")["test"]
-    evaluation_samples = []
-    conditions = []
-
-    for unit_test in unit_tests:
-        evaluation_samples.append(
-            EvaluationSample(
-                input=unit_test["input"],
-                actual_output=unit_test["actual_output"],
-                expected_output=unit_test["expected_output"],
-                references=unit_test["references"],
-            )
-        )
-        conditions.append(ExpectedGroundedQAEvaluation(**unit_test["conditions"]))
-    return evaluation_samples, conditions
+from grouse.utils import NanConverter, load_unit_tests
 
 
 @click.group()

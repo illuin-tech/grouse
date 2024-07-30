@@ -22,6 +22,7 @@ from grouse.dtos import (
 )
 from grouse.llm_calls.tracker import Tracker
 from grouse.llm_calls.cached_instructor import CachedAsyncInstructor
+from grouse.utils import get_positive_acceptance_negative_rejection
 
 
 class GroundedQAEvaluator:
@@ -123,21 +124,11 @@ class GroundedQAEvaluator:
             usefulness = Usefulness(usefulness_justification="", usefulness=None)
             faithfulness = await self.evaluate_faithfulness(eval_sample)
 
-        # Compute positive_acceptance and negative_rejection based on relevancy and completeness
-        if answer_relevancy.answer_relevancy is None:
-            if completeness.completeness is None:
-                positive_acceptance = 1
-                negative_rejection = 1
-            else:
-                positive_acceptance = 0
-                negative_rejection = None
-        else:
-            if completeness.completeness is None:
-                positive_acceptance = None
-                negative_rejection = 0
-            else:
-                positive_acceptance = None
-                negative_rejection = None
+        positive_acceptance, negative_rejection = (
+            get_positive_acceptance_negative_rejection(
+                answer_relevancy.answer_relevancy, completeness.completeness
+            )
+        )
 
         return GroundedQAEvaluation(
             answer_relevancy=answer_relevancy,
