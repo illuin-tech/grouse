@@ -1,71 +1,46 @@
-from typing import List, Optional
-from dataclasses import dataclass
-from pydantic import BaseModel, Field
-
+from typing import List
 from jinja2 import Environment, FileSystemLoader
 import litellm
 import instructor
-from abc import ABC, abstractmethod
 import aiohttp, asyncio
 from tqdm.asyncio import tqdm
 import numpy as np
 
-from grouse.metric_formats import (
+from grouse.dtos import (
     AnswerRelevancy,
     Completeness,
     Faithfulness,
     Usefulness,
-    PositiveAcceptance,
-    NegativeRejection,
     AnswerRelevancyPair,
     CompletenessPair,
     FaithfulnessPair,
     UsefulnessPair,
     GroundedQAEvaluationReport,
+    EvaluationSample,
+    GroundedQAEvaluation,
+    EvaluationsAndReport,
 )
-
-MODEL_NAME = "gpt-4"
-NO_ANWER_STR = "no document seems to precisely answer your question"
-
-
-@dataclass
-class GroundedQAEvaluation:
-    answer_relevancy: AnswerRelevancy
-    completeness: Completeness
-    faithfulness: Faithfulness
-    usefulness: Usefulness
-    positive_aceptance: PositiveAcceptance
-    negative_rejection: NegativeRejection
+from grouse.llm_calls.tracker import Tracker
+from grouse.llm_calls.cached_instructor import CachedAsyncInstructor
 
 
-class EvaluationSample(BaseModel):
-    input: str
-    actual_output: str
-    expected_output: str
-    retrieved_contexts: List[str]
+class GroundedQAEvaluator:
+    def __init__(
+        self,
+        model_name="gpt-4",
+        prompts_path="grouse/gpt4_prompts",
+    ):
+        self.model_name = model_name
+        self.environment = Environment(loader=FileSystemLoader(prompts_path))
 
-
-class GroundedQAEvaluator(ABC):
-    @abstractmethod
-    def evaluate_single_sample(
-        self, eval_sample: EvaluationSample
-    ) -> GroundedQAEvaluation:
-        raise NotImplementedError
-
-    @abstractmethod
-    def evaluate_multiple_samples(
-        self, eval_samples: List[EvaluationSample]
-    ) -> List[GroundedQAEvaluation]:
-        raise NotImplementedError
-
-
-class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
-    def __init__(self, enable_cache: bool = True):
-        if enable_cache:
-            litellm.enable_cache("disk")
-
-        self.environment = Environment(loader=FileSystemLoader("grouse/gpt4_prompts"))
-        self.async_client = instructor.from_litellm(litellm.acompletion)
+        cache = litellm.Cache(type="disk", disk_cache_dir=".cache/")
+        self.tracker = Tracker()
+        self.async_client = CachedAsyncInstructor(
+            client=None,
+            create=instructor.patch(create=litellm.acompletion),
+            cache=cache,
+            tracker=self.tracker,
+        )
 
     async def evaluate_answer_relevancy(
         self, eval_sample: EvaluationSample
@@ -77,7 +52,7 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
             expected_output=eval_sample.expected_output,
         )
         pair = await self.async_client.chat.completions.create(
-            model=MODEL_NAME,
+            model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
             response_model=AnswerRelevancyPair,
         )
@@ -91,10 +66,10 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
             input=eval_sample.input,
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
-            contexts=eval_sample.retrieved_contexts,
+            contexts=eval_sample.references,
         )
         pair = await self.async_client.chat.completions.create(
-            model=MODEL_NAME,
+            model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
             response_model=CompletenessPair,
         )
@@ -107,10 +82,10 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
         prompt = template.render(
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
-            contexts=eval_sample.retrieved_contexts,
+            contexts=eval_sample.references,
         )
         pair = await self.async_client.chat.completions.create(
-            model=MODEL_NAME,
+            model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
             response_model=FaithfulnessPair,
         )
@@ -124,35 +99,11 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
             expected_output=eval_sample.expected_output,
         )
         pair = await self.async_client.chat.completions.create(
-            model=MODEL_NAME,
+            model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
             response_model=UsefulnessPair,
         )
         return pair.answer_2
-
-    def evaluate_positive_acceptance(
-        self, eval_sample: EvaluationSample
-    ) -> PositiveAcceptance:
-        pred_rejected = NO_ANWER_STR in eval_sample.actual_output
-        expected_rejected = NO_ANWER_STR in eval_sample.expected_output
-        if not pred_rejected and not expected_rejected:
-            return PositiveAcceptance(positive_acceptance=1)
-        elif pred_rejected and not expected_rejected:
-            return PositiveAcceptance(positive_acceptance=0)
-        else:
-            return PositiveAcceptance(positive_acceptance=None)
-
-    def evaluate_negative_rejection(
-        self, eval_sample: EvaluationSample
-    ) -> PositiveAcceptance:
-        pred_rejected = NO_ANWER_STR in eval_sample.actual_output
-        expected_rejected = NO_ANWER_STR in eval_sample.expected_output
-        if pred_rejected and expected_rejected:
-            return NegativeRejection(negative_rejection=1)
-        elif not pred_rejected and expected_rejected:
-            return NegativeRejection(negative_rejection=0)
-        else:
-            return NegativeRejection(negative_rejection=None)
 
     async def evaluate_single_sample(
         self, eval_sample: EvaluationSample
@@ -172,37 +123,52 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
             usefulness = Usefulness(usefulness_justification="", usefulness=None)
             faithfulness = await self.evaluate_faithfulness(eval_sample)
 
-        positive_acceptance = self.evaluate_positive_acceptance(eval_sample)
-        negative_rejection = self.evaluate_negative_rejection(eval_sample)
+        # Compute positive_acceptance and negative_rejection based on relevancy and completeness
+        if answer_relevancy.answer_relevancy is None:
+            if completeness.completeness is None:
+                positive_acceptance = 1
+                negative_rejection = 1
+            else:
+                positive_acceptance = 0
+                negative_rejection = None
+        else:
+            if completeness.completeness is None:
+                positive_acceptance = None
+                negative_rejection = 0
+            else:
+                positive_acceptance = None
+                negative_rejection = None
+
         return GroundedQAEvaluation(
-            answer_relevancy,
-            completeness,
-            faithfulness,
-            usefulness,
-            positive_acceptance,
-            negative_rejection,
+            answer_relevancy=answer_relevancy,
+            completeness=completeness,
+            faithfulness=faithfulness,
+            usefulness=usefulness,
+            positive_acceptance=positive_acceptance,
+            negative_rejection=negative_rejection,
         )
 
     async def async_evaluate_multiple_samples(
         self, eval_samples: List[EvaluationSample]
     ) -> List[GroundedQAEvaluation]:
         async with aiohttp.ClientSession() as _:
-            evaluatement_coroutines = [
+            evaluation_coroutines = [
                 self.evaluate_single_sample(eval_sample) for eval_sample in eval_samples
             ]
-            evaluatements = await tqdm.gather(*evaluatement_coroutines)
-        return evaluatements
+            evaluations = await tqdm.gather(*evaluation_coroutines)
+        return evaluations
 
     def evaluate_multiple_samples(
         self, eval_samples: List[EvaluationSample]
     ) -> List[GroundedQAEvaluation]:
-        return asyncio.run(self.async_evaluate_multiple_samples(eval_samples))
+        self.cost = 0
+        results = asyncio.run(self.async_evaluate_multiple_samples(eval_samples))
+        self.tracker.log_summary()
+        return results
 
-    def evaluate(
-        self, eval_samples: List[EvaluationSample]
-    ) -> GroundedQAEvaluationReport:
+    def evaluate(self, eval_samples: List[EvaluationSample]) -> EvaluationsAndReport:
         evaluations = self.evaluate_multiple_samples(eval_samples)
-        return GroundedQAEvaluationReport(
+        report = GroundedQAEvaluationReport(
             answer_relevancy=float(
                 np.mean(
                     [
@@ -242,32 +208,33 @@ class GPT4GroundedQAEvaluator(GroundedQAEvaluator):
             positive_acceptance=float(
                 np.mean(
                     [
-                        e.positive_aceptance.positive_acceptance
+                        e.positive_acceptance
                         for e in evaluations
-                        if e.positive_aceptance.positive_acceptance is not None
+                        if e.positive_acceptance is not None
                     ]
                 )
             ),
             negative_rejection=float(
                 np.mean(
                     [
-                        e.negative_rejection.negative_rejection
+                        e.negative_rejection
                         for e in evaluations
-                        if e.negative_rejection.negative_rejection is not None
+                        if e.negative_rejection is not None
                     ]
                 )
             ),
         )
+        return EvaluationsAndReport(evaluations=evaluations, report=report)
 
 
 if __name__ == "__main__":
-    c = GPT4GroundedQAEvaluator()
+    c = GroundedQAEvaluator()
     sample = EvaluationSample(
         input="What if these shoes don't fit?",
         # Replace this with the actual output from your LLM application
         expected_output="We offer a 30-day full refund at no extra costs.",
         actual_output="",
-        retrieved_contexts=[
+        references=[
             "All customers are eligible for a 30 day full refund at no extra costs."
         ],
     )
