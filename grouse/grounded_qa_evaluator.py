@@ -168,61 +168,57 @@ class GroundedQAEvaluator:
 
     def evaluate(self, eval_samples: List[EvaluationSample]) -> EvaluationsAndReport:
         evaluations = self.evaluate_multiple_samples(eval_samples)
+        ar_mean = np.mean(
+            [
+                e.answer_relevancy.answer_relevancy
+                for e in evaluations
+                if e.answer_relevancy.answer_relevancy is not None
+            ]
+        )
+        c_mean = np.mean(
+            [
+                e.completeness.completeness
+                for e in evaluations
+                if e.completeness.completeness is not None
+            ]
+        )
+        f_mean = np.mean(
+            [
+                e.faithfulness.faithfulness
+                for e in evaluations
+                if e.faithfulness.faithfulness is not None
+            ]
+        )
+        u_mean = np.mean(
+            [
+                e.usefulness.usefulness
+                for e in evaluations
+                if e.usefulness.usefulness is not None
+            ]
+        )
+        pa_mean = np.mean(
+            [
+                e.positive_acceptance
+                for e in evaluations
+                if e.positive_acceptance is not None
+            ]
+        )
+        nr_mean = np.mean(
+            [
+                e.negative_rejection
+                for e in evaluations
+                if e.negative_rejection is not None
+            ]
+        )
+        mean = np.mean([ar_mean, c_mean, f_mean, u_mean, pa_mean, nr_mean])
         report = GroundedQAEvaluationReport(
-            answer_relevancy=float(
-                np.mean(
-                    [
-                        e.answer_relevancy.answer_relevancy
-                        for e in evaluations
-                        if e.answer_relevancy.answer_relevancy is not None
-                    ]
-                )
-            ),
-            completeness=float(
-                np.mean(
-                    [
-                        e.completeness.completeness
-                        for e in evaluations
-                        if e.completeness.completeness is not None
-                    ]
-                )
-            ),
-            faithfulness=float(
-                np.mean(
-                    [
-                        e.faithfulness.faithfulness
-                        for e in evaluations
-                        if e.faithfulness.faithfulness is not None
-                    ]
-                )
-            ),
-            usefulness=float(
-                np.mean(
-                    [
-                        e.usefulness.usefulness
-                        for e in evaluations
-                        if e.usefulness.usefulness is not None
-                    ]
-                )
-            ),
-            positive_acceptance=float(
-                np.mean(
-                    [
-                        e.positive_acceptance
-                        for e in evaluations
-                        if e.positive_acceptance is not None
-                    ]
-                )
-            ),
-            negative_rejection=float(
-                np.mean(
-                    [
-                        e.negative_rejection
-                        for e in evaluations
-                        if e.negative_rejection is not None
-                    ]
-                )
-            ),
+            answer_relevancy=float(ar_mean),
+            completeness=float(c_mean),
+            faithfulness=float(f_mean),
+            usefulness=float(u_mean),
+            positive_acceptance=float(pa_mean),
+            negative_rejection=float(nr_mean),
+            mean=mean,
         )
         return EvaluationsAndReport(evaluations=evaluations, report=report)
 

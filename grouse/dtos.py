@@ -63,6 +63,8 @@ class GroundedQAEvaluationReport(BaseModel):
     usefulness: float
     positive_acceptance: float
     negative_rejection: float
+    mean: float
+
 
 
 class GroundedQAEvaluation(BaseModel):
@@ -116,6 +118,7 @@ class MetaEvalReport(BaseModel):
     usefulness_success: float
     positive_acceptance_success: float
     negative_rejection_success: float
+    total: float
 
 
 class MetaEvaluationsAndReport(BaseModel):
