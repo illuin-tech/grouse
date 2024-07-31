@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Muller"
+  given-names: "Sacha"
+  email: "sacha.muller@illuin.tech"
+- family-names: "Loison"
+  given-names: "António"
+  email: "antonio.loison@illuin.tech"
+- family-names: "Omrani"
+  given-names: "Bilel"
+  email: "bilel.omrani@illuin.tech"
+- family-names: "Viaud"
+  given-names: "Gautier"
+  email: "gautier.viaud@illuin.tech"
+title: "GroUSE: A Benchmark to Evaluate Evaluators in Grounded Question Answering"
+date-released: 2024-08-03
+url: "https://github.com/illuin-tech/grouse"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Muller"
+    given-names: "Sacha"
+    email: "sacha.muller@illuin.tech"
+  - family-names: "Loison"
+    given-names: "António"
+    email: "antonio.loison@illuin.tech"
+  - family-names: "Omrani"
+    given-names: "Bilel"
+    email: "bilel.omrani@illuin.tech"
+  - family-names: "Viaud"
+    given-names: "Gautier"
+  month: 8
+  title: "GroUSE: A Benchmark to Evaluate Evaluators in Grounded Question Answering"
+  year: 2024
