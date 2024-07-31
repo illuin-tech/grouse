@@ -58,6 +58,10 @@ You can plot the results of unit tests in the shape of matrices:
 grouse plot meta-outputs/gpt-4o
 ```
 
+The resulting matrices look like this:
+
+![matrices](assets/matrices.png)
+
 ## Python Usage
 
 ```python
