@@ -4,9 +4,10 @@ import os
 import click
 import jsonlines
 
-from grouse.dtos import EvaluationSample, MetaTestCase
+from grouse.dtos import EvaluationSample, MetaTestCase, MetaTestCaseResult
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
 from grouse.meta_evaluator import MetaEvaluator
+from grouse.plot import plot_matrices
 from grouse.utils import NanConverter, load_unit_tests
 
 
@@ -78,3 +79,13 @@ def meta_evaluate(model_name: str, output_dir_path: str) -> None:
     ) as writer:
         for evaluation in meta_evaluations.evaluations:
             writer.write(evaluation.model_dump(mode="json"))
+
+
+@cli.command()
+@click.argument("meta_test_results_path", type=str)
+def plot(meta_test_results_path: str) -> None:
+    results = []
+    with jsonlines.open(meta_test_results_path, "r") as reader:
+        for obj in reader:
+            results.append(MetaTestCaseResult(**obj))
+    plot_matrices(results)
