@@ -15,10 +15,13 @@ from grouse.dtos import (
     CompletenessPair,
     EvaluationSample,
     EvaluationsAndReport,
+    FailedType,
     Faithfulness,
     FaithfulnessPair,
     GroundedQAEvaluation,
     GroundedQAEvaluationReport,
+    Metric,
+    Pair,
     Usefulness,
     UsefulnessPair,
 )
@@ -32,11 +35,12 @@ class GroundedQAEvaluator:
         self,
         model_name: str = "gpt-4",
         prompts_path: str = "grouse/gpt4_prompts",
+        cache_path: str = ".cache_test/",
     ):
         self.model_name = model_name
         self.environment = Environment(loader=FileSystemLoader(prompts_path))
 
-        cache = litellm.Cache(type="disk", disk_cache_dir=".cache/")
+        cache = litellm.Cache(type="disk", disk_cache_dir=cache_path)
         self.tracker = Tracker()
         self.async_client = CachedAsyncInstructor(
             client=None,
@@ -44,6 +48,19 @@ class GroundedQAEvaluator:
             cache=cache,
             tracker=self.tracker,
         )
+
+    async def call_llm(
+        self, prompt: str, pair_model: Pair, **kwargs
+    ) -> Metric | FailedType:
+        pair = await self.async_client.chat.completions.create(
+            model=self.model_name,
+            messages=[{"role": "user", "content": prompt}],
+            response_model=pair_model,
+            **kwargs,
+        )
+        if pair is None:
+            return "FAILED"
+        return pair.answer_2
 
     async def evaluate_answer_relevancy(
         self, eval_sample: EvaluationSample
@@ -54,12 +71,7 @@ class GroundedQAEvaluator:
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
         )
-        pair = await self.async_client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            response_model=AnswerRelevancyPair,
-        )
-        return pair.answer_2
+        return await self.call_llm(prompt, AnswerRelevancyPair)
 
     async def evaluate_completeness(
         self, eval_sample: EvaluationSample
@@ -71,12 +83,7 @@ class GroundedQAEvaluator:
             expected_output=eval_sample.expected_output,
             contexts=eval_sample.references,
         )
-        pair = await self.async_client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            response_model=CompletenessPair,
-        )
-        return pair.answer_2
+        return await self.call_llm(prompt, CompletenessPair)
 
     async def evaluate_faithfulness(
         self, eval_sample: EvaluationSample
@@ -87,12 +94,7 @@ class GroundedQAEvaluator:
             expected_output=eval_sample.expected_output,
             contexts=eval_sample.references,
         )
-        pair = await self.async_client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            response_model=FaithfulnessPair,
-        )
-        return pair.answer_2
+        return await self.call_llm(prompt, FaithfulnessPair)
 
     async def evaluate_usefulness(self, eval_sample: EvaluationSample) -> Usefulness:
         template = self.environment.get_template("usefulness.txt")
@@ -101,12 +103,7 @@ class GroundedQAEvaluator:
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
         )
-        pair = await self.async_client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            response_model=UsefulnessPair,
-        )
-        return pair.answer_2
+        return await self.call_llm(prompt, UsefulnessPair)
 
     async def evaluate_single_sample(
         self, eval_sample: EvaluationSample
@@ -114,23 +111,30 @@ class GroundedQAEvaluator:
         answer_relevancy = await self.evaluate_answer_relevancy(eval_sample)
         completeness = await self.evaluate_completeness(eval_sample)
 
-        if answer_relevancy.answer_relevancy is None:
-            usefulness = await self.evaluate_usefulness(eval_sample)
-            if usefulness.usefulness is None:
-                faithfulness = Faithfulness(
-                    faithfulness_justification="", faithfulness=None
-                )
-            else:
-                faithfulness = await self.evaluate_faithfulness(eval_sample)
+        if answer_relevancy == "FAILED":
+            usefulness = "FAILED"
+            faithfulness = "FAILED"
         else:
-            usefulness = Usefulness(usefulness_justification="", usefulness=None)
-            faithfulness = await self.evaluate_faithfulness(eval_sample)
+            if answer_relevancy.answer_relevancy is None:
+                usefulness = await self.evaluate_usefulness(eval_sample)
+                if usefulness.usefulness is None:
+                    faithfulness = Faithfulness(
+                        faithfulness_justification="", faithfulness=None
+                    )
+                else:
+                    faithfulness = await self.evaluate_faithfulness(eval_sample)
+            else:
+                usefulness = Usefulness(usefulness_justification="", usefulness=None)
+                faithfulness = await self.evaluate_faithfulness(eval_sample)
 
-        positive_acceptance, negative_rejection = (
-            get_positive_acceptance_negative_rejection(
-                answer_relevancy.answer_relevancy, completeness.completeness
+        if answer_relevancy == "FAILED" or completeness == "FAILED":
+            positive_acceptance, negative_rejection = "FAILED", "FAILED"
+        else:
+            positive_acceptance, negative_rejection = (
+                get_positive_acceptance_negative_rejection(
+                    answer_relevancy.answer_relevancy, completeness.completeness
+                )
             )
-        )
 
         return GroundedQAEvaluation(
             answer_relevancy=answer_relevancy,
@@ -165,29 +169,44 @@ class GroundedQAEvaluator:
             [
                 e.answer_relevancy.answer_relevancy
                 for e in evaluations
-                if e.answer_relevancy.answer_relevancy is not None
+                if e.answer_relevancy != "FAILED"
+                and e.answer_relevancy.answer_relevancy is not None
             ]
+        )
+        ar_parsing_success = np.mean(
+            [int(e.answer_relevancy is not None) for e in evaluations]
         )
         c_mean = np.mean(
             [
                 e.completeness.completeness
                 for e in evaluations
-                if e.completeness.completeness is not None
+                if e.completeness != "FAILED"
+                and e.completeness.completeness is not None
             ]
+        )
+        c_parsing_success = np.mean(
+            [int(e.completeness is not None) for e in evaluations]
         )
         f_mean = np.mean(
             [
                 e.faithfulness.faithfulness
                 for e in evaluations
-                if e.faithfulness.faithfulness is not None
+                if e.faithfulness != "FAILED"
+                and e.faithfulness.faithfulness is not None
             ]
+        )
+        f_parsing_success = np.mean(
+            [int(e.faithfulness is not None) for e in evaluations]
         )
         u_mean = np.mean(
             [
                 e.usefulness.usefulness
                 for e in evaluations
-                if e.usefulness.usefulness is not None
+                if e.usefulness != "FAILED" and e.usefulness.usefulness is not None
             ]
+        )
+        u_parsing_success = np.mean(
+            [int(e.usefulness is not None) for e in evaluations]
         )
         pa_mean = np.mean(
             [
@@ -206,9 +225,13 @@ class GroundedQAEvaluator:
         mean = np.mean([ar_mean, c_mean, f_mean, u_mean, pa_mean, nr_mean])
         report = GroundedQAEvaluationReport(
             answer_relevancy=float(ar_mean),
+            answer_relevancy_parsing_success=float(ar_parsing_success),
             completeness=float(c_mean),
+            completeness_parsing_success=float(c_parsing_success),
             faithfulness=float(f_mean),
+            faithfulness_parsing_success=float(f_parsing_success),
             usefulness=float(u_mean),
+            usefulness_parse_success=float(u_parsing_success),
             positive_acceptance=float(pa_mean),
             negative_rejection=float(nr_mean),
             mean=mean,

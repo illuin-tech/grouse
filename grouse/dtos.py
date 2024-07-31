@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -56,24 +56,33 @@ class UsefulnessPair(BaseModel):
     answer_2: Usefulness
 
 
+Metric = Union[AnswerRelevancy, Completeness, Faithfulness, Usefulness]
+Pair = Union[AnswerRelevancyPair, CompletenessPair, FaithfulnessPair, UsefulnessPair]
+FailedType = Literal["FAILED"]
+
+
 # Evaluation DTOs
 class GroundedQAEvaluationReport(BaseModel):
     answer_relevancy: float
+    answer_relevancy_parsing_success: float
     completeness: float
+    completeness_parsing_success: float
     faithfulness: float
+    faithfulness_parsing_success: float
     usefulness: float
+    usefulness_parse_success: float
     positive_acceptance: float
     negative_rejection: float
     mean: float
 
 
 class GroundedQAEvaluation(BaseModel):
-    answer_relevancy: AnswerRelevancy
-    completeness: Completeness
-    faithfulness: Faithfulness
-    usefulness: Usefulness
-    positive_acceptance: Optional[int]
-    negative_rejection: Optional[int]
+    answer_relevancy: AnswerRelevancy | FailedType
+    completeness: Completeness | FailedType
+    faithfulness: Faithfulness | FailedType
+    usefulness: Usefulness | FailedType
+    positive_acceptance: Optional[int] | FailedType
+    negative_rejection: Optional[int] | FailedType
 
 
 class EvaluationSample(BaseModel):
@@ -103,12 +112,12 @@ class MetaTestCase(BaseModel):
 
 
 class MetaTestCaseResult(BaseModel):
-    answer_relevancy: bool
-    completeness: bool
-    faithfulness: bool
-    usefulness: bool
-    positive_acceptance: bool
-    negative_rejection: bool
+    answer_relevancy: bool | FailedType
+    completeness: bool | FailedType
+    faithfulness: bool | FailedType
+    usefulness: bool | FailedType
+    positive_acceptance: bool | FailedType
+    negative_rejection: bool | FailedType
 
 
 class MetaEvalReport(BaseModel):

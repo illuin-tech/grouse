@@ -4,7 +4,13 @@ from typing import Any, List, Optional, Tuple
 
 from datasets import load_dataset
 
-from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
+from grouse.dtos import (
+    AnswerRelevancy,
+    Completeness,
+    EvaluationSample,
+    ExpectedGroundedQAEvaluation,
+    FailedType,
+)
 
 DATASET_NAME = "illuin/grouse"
 
@@ -28,23 +34,27 @@ class NanConverter(JSONEncoder):
 
 
 def get_positive_acceptance_negative_rejection(
-    answer_relevancy: Optional[int], completeness: Optional[int]
-) -> Tuple[Optional[int], Optional[int]]:
-    if answer_relevancy is None:
-        if completeness is None:
-            positive_acceptance = 1
-            negative_rejection = 1
-        else:
-            positive_acceptance = 0
-            negative_rejection = None
+    answer_relevancy: AnswerRelevancy | FailedType,
+    completeness: Completeness | FailedType,
+) -> Tuple[Optional[int] | FailedType, Optional[int] | FailedType]:
+    if answer_relevancy == "FAILED" or completeness == "FAILED":
+        return "FAILED", "FAILED"
     else:
-        if completeness is None:
-            positive_acceptance = None
-            negative_rejection = 0
+        if answer_relevancy is None:
+            if completeness is None:
+                positive_acceptance = 1
+                negative_rejection = 1
+            else:
+                positive_acceptance = 0
+                negative_rejection = None
         else:
-            positive_acceptance = None
-            negative_rejection = None
-    return positive_acceptance, negative_rejection
+            if completeness is None:
+                positive_acceptance = None
+                negative_rejection = 0
+            else:
+                positive_acceptance = None
+                negative_rejection = None
+        return positive_acceptance, negative_rejection
 
 
 def load_unit_tests() -> (

@@ -32,51 +32,77 @@ class MetaEvaluator:
             raise ValueError("Invalid condition")
 
     def evaluate_single_test_case(self, test_case: MetaTestCase) -> MetaTestCaseResult:
-        if test_case.expected_evaluation.answer_relevancy_condition == "==None":
-            if test_case.expected_evaluation.completeness_condition == "==None":
-                positive_acceptance_condition = "==1"
-                negative_rejection_condition = "==1"
-            else:
-                positive_acceptance_condition = "==0"
-                negative_rejection_condition = "==None"
+        if test_case.actual_evaluation.answer_relevancy == "FAILED":
+            answer_relevancy_result = "FAILED"
         else:
-            if test_case.expected_evaluation.completeness_condition == "==None":
-                positive_acceptance_condition = "==None"
-                negative_rejection_condition = "==0"
-            else:
-                positive_acceptance_condition = "==None"
-                negative_rejection_condition = "==None"
-
-        evaluated_positive_acceptance, evaluated_negative_rejection = (
-            get_positive_acceptance_negative_rejection(
-                test_case.actual_evaluation.answer_relevancy.answer_relevancy,
-                test_case.actual_evaluation.completeness.completeness,
-            )
-        )
-
-        return MetaTestCaseResult(
-            answer_relevancy=self.compare(
+            answer_relevancy_result = self.compare(
                 test_case.actual_evaluation.answer_relevancy.answer_relevancy,
                 test_case.expected_evaluation.answer_relevancy_condition,
-            ),
-            completeness=self.compare(
+            )
+        if test_case.actual_evaluation.completeness == "FAILED":
+            completeness_result = "FAILED"
+        else:
+            completeness_result = self.compare(
                 test_case.actual_evaluation.completeness.completeness,
                 test_case.expected_evaluation.completeness_condition,
-            ),
-            faithfulness=self.compare(
+            )
+        if test_case.actual_evaluation.faithfulness == "FAILED":
+            faithfulness_result = "FAILED"
+        else:
+            faithfulness_result = self.compare(
                 test_case.actual_evaluation.faithfulness.faithfulness,
                 test_case.expected_evaluation.faithfulness_condition,
-            ),
-            usefulness=self.compare(
+            )
+        if test_case.actual_evaluation.usefulness == "FAILED":
+            usefulness_result = "FAILED"
+        else:
+            usefulness_result = self.compare(
                 test_case.actual_evaluation.usefulness.usefulness,
                 test_case.expected_evaluation.usefulness_condition,
-            ),
-            positive_acceptance=self.compare(
+            )
+
+        if (
+            test_case.actual_evaluation.answer_relevancy == "FAILED"
+            or test_case.actual_evaluation.completeness == "FAILED"
+        ):
+            pa_result = "FAILED"
+            nr_result = "FAILED"
+        else:
+            if test_case.expected_evaluation.answer_relevancy_condition == "==None":
+                if test_case.expected_evaluation.completeness_condition == "==None":
+                    positive_acceptance_condition = "==1"
+                    negative_rejection_condition = "==1"
+                else:
+                    positive_acceptance_condition = "==0"
+                    negative_rejection_condition = "==None"
+            else:
+                if test_case.expected_evaluation.completeness_condition == "==None":
+                    positive_acceptance_condition = "==None"
+                    negative_rejection_condition = "==0"
+                else:
+                    positive_acceptance_condition = "==None"
+                    negative_rejection_condition = "==None"
+
+            evaluated_positive_acceptance, evaluated_negative_rejection = (
+                get_positive_acceptance_negative_rejection(
+                    test_case.actual_evaluation.answer_relevancy.answer_relevancy,
+                    test_case.actual_evaluation.completeness.completeness,
+                )
+            )
+            pa_result = self.compare(
                 evaluated_positive_acceptance, positive_acceptance_condition
-            ),
-            negative_rejection=self.compare(
+            )
+            nr_result = self.compare(
                 evaluated_negative_rejection, negative_rejection_condition
-            ),
+            )
+
+        return MetaTestCaseResult(
+            answer_relevancy=answer_relevancy_result,
+            completeness=completeness_result,
+            faithfulness=faithfulness_result,
+            usefulness=usefulness_result,
+            positive_acceptance=pa_result,
+            negative_rejection=nr_result,
         )
 
     def evaluate_multiple_test_cases(
