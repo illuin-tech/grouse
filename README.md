@@ -23,7 +23,7 @@ pip install -e .
 
 You can build a dataset in a `jsonl` file with the following format per line:
 
-```json
+```txt
 {
     "references": [...] # List of references,
     "input": "" # Query
