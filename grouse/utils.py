@@ -9,7 +9,7 @@ from grouse.dtos import (
     Completeness,
     EvaluationSample,
     ExpectedGroundedQAEvaluation,
-    FailedType,
+    Failed,
 )
 
 DATASET_NAME = "illuin/grouse"
@@ -34,11 +34,11 @@ class NanConverter(JSONEncoder):
 
 
 def get_positive_acceptance_negative_rejection(
-    answer_relevancy: AnswerRelevancy | FailedType,
-    completeness: Completeness | FailedType,
-) -> Tuple[Optional[int] | FailedType, Optional[int] | FailedType]:
-    if answer_relevancy == "FAILED" or completeness == "FAILED":
-        return "FAILED", "FAILED"
+    answer_relevancy: AnswerRelevancy | Failed,
+    completeness: Completeness | Failed,
+) -> Tuple[Optional[int] | Failed, Optional[int] | Failed]:
+    if isinstance(answer_relevancy, Failed) or isinstance(completeness, Failed):
+        return Failed(), Failed()
     else:
         if answer_relevancy is None:
             if completeness is None:

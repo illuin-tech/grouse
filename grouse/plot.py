@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib.legend_handler import HandlerBase
 
 from grouse.dtos import (
+    Failed,
     MetaTestCaseResult,
 )
 
@@ -32,7 +33,6 @@ def add_custom_legend(
 
     patch_size = 20
     list_patches = []
-    print()
     for key in value_colors.keys():
         list_patches.append(
             patches.Rectangle(
@@ -160,7 +160,7 @@ def build_circle_legend(letter_to_label_dict):
 
 
 def process_value(value):
-    if value == "FAILED":
+    if isinstance(value, Failed):
         return 2
     else:
         return int(value)

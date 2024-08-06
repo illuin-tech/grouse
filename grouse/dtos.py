@@ -1,9 +1,11 @@
 from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
+from typing_extensions import override
 
 
-# Metrics
+# These models are used by instructor to enforce the output json schema
+# Be careful if you change these models, as the field names are optimized for the prompt
 class AnswerRelevancy(BaseModel):
     answer_affirms_no_document_answers: bool
     answer_relevancy_justification: str
@@ -56,9 +58,25 @@ class UsefulnessPair(BaseModel):
     answer_2: Usefulness
 
 
-Metric = Union[AnswerRelevancy, Completeness, Faithfulness, Usefulness]
-Pair = Union[AnswerRelevancyPair, CompletenessPair, FaithfulnessPair, UsefulnessPair]
-FailedType = Literal["FAILED"]
+ScoreT = Union[AnswerRelevancy, Completeness, Faithfulness, Usefulness]
+ScorePairT = Union[
+    AnswerRelevancyPair, CompletenessPair, FaithfulnessPair, UsefulnessPair
+]
+
+
+# Sentinel class used until PEP 0661 is accepted
+class Failed(BaseModel):
+    """
+    A sentinel singleton class used to distinguish failed request results
+    from results with the value None (which may have different behavior).
+    """
+
+    def __bool__(self) -> Literal[False]:
+        return False
+
+    @override
+    def __repr__(self) -> str:
+        return "FAILED"
 
 
 # Evaluation DTOs
@@ -77,12 +95,12 @@ class GroundedQAEvaluationReport(BaseModel):
 
 
 class GroundedQAEvaluation(BaseModel):
-    answer_relevancy: AnswerRelevancy | FailedType
-    completeness: Completeness | FailedType
-    faithfulness: Faithfulness | FailedType
-    usefulness: Usefulness | FailedType
-    positive_acceptance: Optional[int] | FailedType
-    negative_rejection: Optional[int] | FailedType
+    answer_relevancy: AnswerRelevancy | Failed
+    completeness: Completeness | Failed
+    faithfulness: Faithfulness | Failed
+    usefulness: Usefulness | Failed
+    positive_acceptance: Optional[int] | Failed
+    negative_rejection: Optional[int] | Failed
 
 
 class EvaluationSample(BaseModel):
@@ -112,12 +130,12 @@ class MetaTestCase(BaseModel):
 
 
 class MetaTestCaseResult(BaseModel):
-    answer_relevancy: bool | FailedType
-    completeness: bool | FailedType
-    faithfulness: bool | FailedType
-    usefulness: bool | FailedType
-    positive_acceptance: bool | FailedType
-    negative_rejection: bool | FailedType
+    answer_relevancy: bool | Failed
+    completeness: bool | Failed
+    faithfulness: bool | Failed
+    usefulness: bool | Failed
+    positive_acceptance: bool | Failed
+    negative_rejection: bool | Failed
 
 
 class MetaEvalReport(BaseModel):

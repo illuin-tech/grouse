@@ -6,6 +6,7 @@ from grouse.dtos import (
     AnswerRelevancy,
     Completeness,
     EvaluationsAndReport,
+    Failed,
     Faithfulness,
     GroundedQAEvaluation,
     GroundedQAEvaluationReport,
@@ -168,7 +169,7 @@ class TestGroundedQAEvaluator:
         with patch.object(
             GroundedQAEvaluator,
             "call_llm",
-            return_value="FAILED",
+            return_value=Failed(),
         ):
             evaluation = asyncio.run(
                 self.evaluator.evaluate_single_sample(
@@ -181,12 +182,12 @@ class TestGroundedQAEvaluator:
                 )
             )
             assert isinstance(evaluation, GroundedQAEvaluation)
-            assert evaluation.answer_relevancy == "FAILED"
-            assert evaluation.completeness == "FAILED"
-            assert evaluation.faithfulness == "FAILED"
-            assert evaluation.usefulness == "FAILED"
-            assert evaluation.positive_acceptance == "FAILED"
-            assert evaluation.negative_rejection == "FAILED"
+            assert isinstance(evaluation.answer_relevancy, Failed)
+            assert isinstance(evaluation.completeness, Failed)
+            assert isinstance(evaluation.faithfulness, Failed)
+            assert isinstance(evaluation.usefulness, Failed)
+            assert isinstance(evaluation.positive_acceptance, Failed)
+            assert isinstance(evaluation.negative_rejection, Failed)
 
     def test_evaluate(self) -> None:
         with patch.object(

@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from grouse.dtos import (
+    Failed,
     MetaEvalReport,
     MetaEvaluationsAndReport,
     MetaTestCase,
@@ -32,41 +33,40 @@ class MetaEvaluator:
             raise ValueError("Invalid condition")
 
     def evaluate_single_test_case(self, test_case: MetaTestCase) -> MetaTestCaseResult:
-        if test_case.actual_evaluation.answer_relevancy == "FAILED":
-            answer_relevancy_result = "FAILED"
+        if isinstance(test_case.actual_evaluation.answer_relevancy, Failed):
+            answer_relevancy_result = Failed()
         else:
             answer_relevancy_result = self.compare(
                 test_case.actual_evaluation.answer_relevancy.answer_relevancy,
                 test_case.expected_evaluation.answer_relevancy_condition,
             )
-        if test_case.actual_evaluation.completeness == "FAILED":
-            completeness_result = "FAILED"
+        if isinstance(test_case.actual_evaluation.completeness, Failed):
+            completeness_result = Failed()
         else:
             completeness_result = self.compare(
                 test_case.actual_evaluation.completeness.completeness,
                 test_case.expected_evaluation.completeness_condition,
             )
-        if test_case.actual_evaluation.faithfulness == "FAILED":
-            faithfulness_result = "FAILED"
+        if isinstance(test_case.actual_evaluation.faithfulness, Failed):
+            faithfulness_result = Failed()
         else:
             faithfulness_result = self.compare(
                 test_case.actual_evaluation.faithfulness.faithfulness,
                 test_case.expected_evaluation.faithfulness_condition,
             )
-        if test_case.actual_evaluation.usefulness == "FAILED":
-            usefulness_result = "FAILED"
+        if isinstance(test_case.actual_evaluation.usefulness, Failed):
+            usefulness_result = Failed()
         else:
             usefulness_result = self.compare(
                 test_case.actual_evaluation.usefulness.usefulness,
                 test_case.expected_evaluation.usefulness_condition,
             )
 
-        if (
-            test_case.actual_evaluation.answer_relevancy == "FAILED"
-            or test_case.actual_evaluation.completeness == "FAILED"
-        ):
-            pa_result = "FAILED"
-            nr_result = "FAILED"
+        if isinstance(
+            test_case.actual_evaluation.answer_relevancy, Failed
+        ) or isinstance(test_case.actual_evaluation.completeness, Failed):
+            pa_result = Failed()
+            nr_result = Failed()
         else:
             if test_case.expected_evaluation.answer_relevancy_condition == "==None":
                 if test_case.expected_evaluation.completeness_condition == "==None":

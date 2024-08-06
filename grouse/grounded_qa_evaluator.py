@@ -15,13 +15,13 @@ from grouse.dtos import (
     CompletenessPair,
     EvaluationSample,
     EvaluationsAndReport,
-    FailedType,
+    Failed,
     Faithfulness,
     FaithfulnessPair,
     GroundedQAEvaluation,
     GroundedQAEvaluationReport,
-    Metric,
-    Pair,
+    ScorePairT,
+    ScoreT,
     Usefulness,
     UsefulnessPair,
 )
@@ -50,8 +50,8 @@ class GroundedQAEvaluator:
         )
 
     async def call_llm(
-        self, prompt: str, pair_model: Pair, **kwargs
-    ) -> Metric | FailedType:
+        self, prompt: str, pair_model: ScorePairT, **kwargs
+    ) -> ScoreT | Failed:
         pair = await self.async_client.chat.completions.create(
             model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
@@ -59,12 +59,12 @@ class GroundedQAEvaluator:
             **kwargs,
         )
         if pair is None:
-            return "FAILED"
+            return Failed()
         return pair.answer_2
 
     async def evaluate_answer_relevancy(
         self, eval_sample: EvaluationSample
-    ) -> AnswerRelevancy:
+    ) -> AnswerRelevancy | Failed:
         template = self.environment.get_template("answer_relevancy.txt")
         prompt = template.render(
             input=eval_sample.input,
@@ -75,7 +75,7 @@ class GroundedQAEvaluator:
 
     async def evaluate_completeness(
         self, eval_sample: EvaluationSample
-    ) -> Completeness:
+    ) -> Completeness | Failed:
         template = self.environment.get_template("completeness.txt")
         prompt = template.render(
             input=eval_sample.input,
@@ -87,7 +87,7 @@ class GroundedQAEvaluator:
 
     async def evaluate_faithfulness(
         self, eval_sample: EvaluationSample
-    ) -> Faithfulness:
+    ) -> Faithfulness | Failed:
         template = self.environment.get_template("faithfulness.txt")
         prompt = template.render(
             actual_output=eval_sample.actual_output,
@@ -96,7 +96,9 @@ class GroundedQAEvaluator:
         )
         return await self.call_llm(prompt, FaithfulnessPair)
 
-    async def evaluate_usefulness(self, eval_sample: EvaluationSample) -> Usefulness:
+    async def evaluate_usefulness(
+        self, eval_sample: EvaluationSample
+    ) -> Usefulness | Failed:
         template = self.environment.get_template("usefulness.txt")
         prompt = template.render(
             input=eval_sample.input,
@@ -111,9 +113,9 @@ class GroundedQAEvaluator:
         answer_relevancy = await self.evaluate_answer_relevancy(eval_sample)
         completeness = await self.evaluate_completeness(eval_sample)
 
-        if answer_relevancy == "FAILED":
-            usefulness = "FAILED"
-            faithfulness = "FAILED"
+        if isinstance(answer_relevancy, Failed):
+            usefulness = Failed()
+            faithfulness = Failed()
         else:
             if answer_relevancy.answer_relevancy is None:
                 usefulness = await self.evaluate_usefulness(eval_sample)
@@ -127,8 +129,8 @@ class GroundedQAEvaluator:
                 usefulness = Usefulness(usefulness_justification="", usefulness=None)
                 faithfulness = await self.evaluate_faithfulness(eval_sample)
 
-        if answer_relevancy == "FAILED" or completeness == "FAILED":
-            positive_acceptance, negative_rejection = "FAILED", "FAILED"
+        if isinstance(answer_relevancy, Failed) or isinstance(completeness, Failed):
+            positive_acceptance, negative_rejection = Failed(), Failed()
         else:
             positive_acceptance, negative_rejection = (
                 get_positive_acceptance_negative_rejection(
@@ -169,7 +171,7 @@ class GroundedQAEvaluator:
             [
                 e.answer_relevancy.answer_relevancy
                 for e in evaluations
-                if e.answer_relevancy != "FAILED"
+                if bool(e.answer_relevancy)
                 and e.answer_relevancy.answer_relevancy is not None
             ]
         )
@@ -180,8 +182,7 @@ class GroundedQAEvaluator:
             [
                 e.completeness.completeness
                 for e in evaluations
-                if e.completeness != "FAILED"
-                and e.completeness.completeness is not None
+                if bool(e.completeness) and e.completeness.completeness is not None
             ]
         )
         c_parsing_success = np.mean(
@@ -191,8 +192,7 @@ class GroundedQAEvaluator:
             [
                 e.faithfulness.faithfulness
                 for e in evaluations
-                if e.faithfulness != "FAILED"
-                and e.faithfulness.faithfulness is not None
+                if bool(e.faithfulness) and e.faithfulness.faithfulness is not None
             ]
         )
         f_parsing_success = np.mean(
@@ -202,7 +202,7 @@ class GroundedQAEvaluator:
             [
                 e.usefulness.usefulness
                 for e in evaluations
-                if e.usefulness != "FAILED" and e.usefulness.usefulness is not None
+                if bool(e.usefulness) and e.usefulness.usefulness is not None
             ]
         )
         u_parsing_success = np.mean(
@@ -237,17 +237,3 @@ class GroundedQAEvaluator:
             mean=mean,
         )
         return EvaluationsAndReport(evaluations=evaluations, report=report)
-
-
-if __name__ == "__main__":
-    c = GroundedQAEvaluator()
-    sample = EvaluationSample(
-        input="What if these shoes don't fit?",
-        # Replace this with the actual output from your LLM application
-        expected_output="We offer a 30-day full refund at no extra costs.",
-        actual_output="",
-        references=[
-            "All customers are eligible for a 30 day full refund at no extra costs."
-        ],
-    )
-    print(c.evaluate([sample] * 10))
