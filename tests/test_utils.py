@@ -1,4 +1,5 @@
 from typing import Optional
+from unittest.mock import patch
 
 import pytest
 
@@ -69,10 +70,28 @@ def test_get_positive_acceptance_negative_rejection(
 
 
 def test_load_unit_tests() -> None:
-    samples, conditions = load_unit_tests()
-    assert isinstance(samples, list)
-    assert isinstance(conditions, list)
-    assert len(samples) == 144
-    assert len(conditions) == 144
-    assert isinstance(samples[0], EvaluationSample)
-    assert isinstance(conditions[0], ExpectedGroundedQAEvaluation)
+    with patch(
+        "grouse.utils.load_dataset",
+        return_value={
+            "test": [
+                {
+                    "input": "Quel est la capitale de la France ?",
+                    "actual_output": "Paris[1]",
+                    "expected_output": "Paris[1]",
+                    "references": ["Paris"],
+                    "metadata": {},
+                    "conditions": {
+                        "answer_relevancy_condition": "==5",
+                        "completeness_condition": "==5",
+                        "faithfulness_condition": "==1",
+                        "usefulness_condition": "==None",
+                    },
+                }
+            ],
+        },
+    ):
+        samples, conditions = load_unit_tests()
+        assert isinstance(samples, list)
+        assert isinstance(conditions, list)
+        assert isinstance(samples[0], EvaluationSample)
+        assert isinstance(conditions[0], ExpectedGroundedQAEvaluation)
