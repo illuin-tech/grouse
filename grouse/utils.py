@@ -40,15 +40,15 @@ def get_positive_acceptance_negative_rejection(
     if isinstance(answer_relevancy, Failed) or isinstance(completeness, Failed):
         return Failed(), Failed()
     else:
-        if answer_relevancy is None:
-            if completeness is None:
+        if answer_relevancy.answer_relevancy is None:
+            if completeness.completeness is None:
                 positive_acceptance = 1
                 negative_rejection = 1
             else:
                 positive_acceptance = 0
                 negative_rejection = None
         else:
-            if completeness is None:
+            if completeness.completeness is None:
                 positive_acceptance = None
                 negative_rejection = 0
             else:
@@ -71,6 +71,7 @@ def load_unit_tests() -> (
                 actual_output=unit_test["actual_output"],
                 expected_output=unit_test["expected_output"],
                 references=unit_test["references"],
+                metadata=unit_test["metadata"],
             )
         )
         conditions.append(ExpectedGroundedQAEvaluation(**unit_test["conditions"]))

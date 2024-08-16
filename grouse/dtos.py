@@ -78,6 +78,7 @@ class EvaluationSample(BaseModel):
     actual_output: str
     expected_output: str
     references: List[str]
+    metadata: Optional[dict] = None
 
 
 class GroundedQAEvaluationReport(BaseModel):

@@ -2,7 +2,12 @@ from typing import Optional
 
 import pytest
 
-from grouse.dtos import EvaluationSample, ExpectedGroundedQAEvaluation
+from grouse.dtos import (
+    AnswerRelevancy,
+    Completeness,
+    EvaluationSample,
+    ExpectedGroundedQAEvaluation,
+)
 from grouse.utils import get_positive_acceptance_negative_rejection, load_unit_tests
 
 
@@ -10,10 +15,46 @@ from grouse.utils import get_positive_acceptance_negative_rejection, load_unit_t
     "answer_relevancy, completeness, "
     "expected_positive_acceptance, expected_negative_rejection",
     [
-        [None, None, 1, 1],
-        [None, 5, 0, None],
-        [5, None, None, 0],
-        [5, 5, None, None],
+        [
+            AnswerRelevancy(
+                answer_relevancy=None,
+                answer_relevancy_justification="",
+                answer_affirms_no_document_answers=False,
+            ),
+            Completeness(completeness=None, completeness_justification=""),
+            1,
+            1,
+        ],
+        [
+            AnswerRelevancy(
+                answer_relevancy=None,
+                answer_relevancy_justification="",
+                answer_affirms_no_document_answers=False,
+            ),
+            Completeness(completeness=5, completeness_justification=""),
+            0,
+            None,
+        ],
+        [
+            AnswerRelevancy(
+                answer_relevancy=5,
+                answer_relevancy_justification="",
+                answer_affirms_no_document_answers=False,
+            ),
+            Completeness(completeness=None, completeness_justification=""),
+            None,
+            0,
+        ],
+        [
+            AnswerRelevancy(
+                answer_relevancy=5,
+                answer_relevancy_justification="",
+                answer_affirms_no_document_answers=False,
+            ),
+            Completeness(completeness=5, completeness_justification=""),
+            None,
+            None,
+        ],
     ],
 )
 def test_get_positive_acceptance_negative_rejection(

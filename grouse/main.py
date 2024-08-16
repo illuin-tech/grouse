@@ -122,8 +122,10 @@ def plot(meta_test_results_path: str) -> None:
         META_TEST_RESULTS_PATH (str): Path to meta evaluation results in
         jsonlines format.
     """
+    evaluation_samples, _ = load_unit_tests()
+
     results = []
     with jsonlines.open(meta_test_results_path, "r") as reader:
         for obj in reader:
             results.append(MetaTestCaseResult(**obj))
-    plot_matrices(results)
+    plot_matrices(evaluation_samples, results)

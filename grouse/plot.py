@@ -7,14 +7,15 @@ import numpy as np
 from matplotlib.legend_handler import HandlerBase
 
 from grouse.dtos import (
+    EvaluationSample,
     Failed,
     MetaTestCaseResult,
 )
 
 VALUE_COLORS = {1: "tab:blue", 0: "tab:red", 2: "tab:orange"}
 VALUE_LABELS = {1: "Test passed", 0: "Test failed", 2: "Output wrong format"}
-cmap = plt.cm.colors.ListedColormap([VALUE_COLORS[0], VALUE_COLORS[1], VALUE_COLORS[2]])
-norm = mcolors.BoundaryNorm(boundaries=[0, 1, 2, 3], ncolors=3)
+CMAP = plt.cm.colors.ListedColormap([VALUE_COLORS[0], VALUE_COLORS[1], VALUE_COLORS[2]])
+NORM = mcolors.BoundaryNorm(boundaries=[0, 1, 2, 3], ncolors=3)
 
 
 def add_custom_legend(
@@ -81,7 +82,7 @@ def plot_matrix(
     for k in range(matrix.shape[1] - 1):
         ax.axvline(k + 0.5, color="white", linewidth=2)
 
-    ax.imshow(matrix, cmap=cmap, norm=norm, interpolation="nearest")
+    ax.imshow(matrix, cmap=CMAP, norm=NORM, interpolation="nearest")
     for row in hatch_rows:
         for column in range(matrix.shape[1]):
             ax.add_patch(
@@ -167,7 +168,24 @@ def process_value(value):
         return int(value)
 
 
-def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
+def plot_matrices(
+    evaluation_samples: List[EvaluationSample],
+    meta_evaluations: List[MetaTestCaseResult],
+) -> None:
+    questions_seen = set()
+    unique_questions = []
+    test_types_seen = set()
+    unique_test_types = []
+
+    for evaluation_sample in evaluation_samples:
+        if evaluation_sample.input not in questions_seen:
+            unique_questions.append(evaluation_sample.input)
+            questions_seen.add(evaluation_sample.input)
+        test_type = evaluation_sample.metadata.get("test_type", "")
+        if test_type not in test_types_seen:
+            unique_test_types.append(test_type)
+            test_types_seen.add(test_type)
+
     fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(40, 10))
     fig.subplots_adjust(bottom=0.5, left=0.2)
 
@@ -177,28 +195,10 @@ def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
     completeness_values = [process_value(e.completeness) for e in meta_evaluations]
     faithfulness_values = [process_value(e.faithfulness) for e in meta_evaluations]
     usefulness_values = [process_value(e.usefulness) for e in meta_evaluations]
-    row_names = [
-        "Highest marks 1",
-        "Highest marks 2",
-        "Highest marks 3",
-        "Highest marks 4",
-        "Highest marks 5",
-        "Highest marks 6",
-        "Highest marks 7",
-        "Low answer relevancy 1",
-        "Low answer relevancy 2",
-        "Low completeness 1",
-        "Low completeness 2",
-        "Low completeness 3",
-        "Low usefulness 1",
-        "Low faithfulness 1",
-        "Low faithfulness 2",
-        "Low faithfulness 3",
-    ]
 
     plot_matrix(
         answer_relevancy_values,
-        row_names,
+        unique_test_types,
         "Answer Relevancy",
         axes[0],
         [],
@@ -207,7 +207,7 @@ def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
     )
     plot_matrix(
         completeness_values,
-        row_names,
+        unique_test_types,
         "Completeness",
         axes[1],
         [],
@@ -216,7 +216,7 @@ def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
     )
     plot_matrix(
         usefulness_values,
-        row_names,
+        unique_test_types,
         "Usefulness",
         axes[2],
         [0, 3, 5, 7, 8, 9, 13, 14, 15],
@@ -225,7 +225,7 @@ def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
     )
     plot_matrix(
         faithfulness_values,
-        row_names,
+        unique_test_types,
         "Faithfulness",
         axes[3],
         [1, 4, 10],
@@ -245,19 +245,9 @@ def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
         loc=custom_legend_loc,
         fontsize=18,
     )
-    questions = [
-        "How can we explain the solidity of the Pantheon's dome?",
-        "What is the relationship between Pluto and Neptune?",
-        "Slow-motion effects and inspiration from Peckinpah?",
-        "What are the differences and similarities between the Bay Cat and "
-        "the Temminck's Cat?",
-        "When should a blood gas test be performed during an apnea test?",
-        "Physical characteristics of the Pyrenean goat",
-        'Why did Audrey Dana direct the film "French Women"?',
-        "What is the influence of Jackie Robinson on American society?",
-        "How was cuneiform deciphered?",
-    ]
-    int_to_label_dict = {str(i + 1): question for (i, question) in enumerate(questions)}
+    int_to_label_dict = {
+        str(i + 1): question for (i, question) in enumerate(unique_questions)
+    }
     test_questions_legend_bbox_to_anchor = (0.3, 0.3)
     fake_objects_circle, labels_circle, handler_map_circle = build_circle_legend(
         int_to_label_dict

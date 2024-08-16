@@ -45,14 +45,11 @@ class GroundedQAEvaluator:
             tracker=self.tracker,
         )
 
-    async def call_llm(
-        self, prompt: str, pair_model: ScorePair, **kwargs
-    ) -> Score | Failed:
+    async def call_llm(self, prompt: str, pair_model: ScorePair) -> Score | Failed:
         pair = await self.async_client.chat.completions.create(
             model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
             response_model=pair_model,
-            **kwargs,
         )
         if pair is None:
             return Failed()
@@ -125,14 +122,9 @@ class GroundedQAEvaluator:
                 usefulness = Usefulness(usefulness_justification="", usefulness=None)
                 faithfulness = await self.evaluate_faithfulness(eval_sample)
 
-        if isinstance(answer_relevancy, Failed) or isinstance(completeness, Failed):
-            positive_acceptance, negative_rejection = Failed(), Failed()
-        else:
-            positive_acceptance, negative_rejection = (
-                get_positive_acceptance_negative_rejection(
-                    answer_relevancy.answer_relevancy, completeness.completeness
-                )
-            )
+        positive_acceptance, negative_rejection = (
+            get_positive_acceptance_negative_rejection(answer_relevancy, completeness)
+        )
 
         return GroundedQAEvaluation(
             answer_relevancy=answer_relevancy,
@@ -156,7 +148,6 @@ class GroundedQAEvaluator:
     def evaluate_multiple_samples(
         self, eval_samples: List[EvaluationSample]
     ) -> List[GroundedQAEvaluation]:
-        self.cost = 0
         results = asyncio.run(self.async_evaluate_multiple_samples(eval_samples))
         self.tracker.log_summary()
         return results

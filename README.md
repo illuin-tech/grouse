@@ -60,7 +60,7 @@ grouse plot meta-outputs/gpt-4o
 
 The resulting matrices look like this:
 
-![matrices](assets/matrices.png)
+![result_matrices_plot](assets/result_matrices_plot.png)
 
 ## Python Usage
 
