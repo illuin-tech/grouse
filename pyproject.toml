@@ -52,6 +52,9 @@ repository = "https://github.com/illuin-tech/grouse"
 requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools_scm]
+fallback_version = "0.0.1"
+
 [project.scripts]
 grouse = "grouse.main:cli"
 
