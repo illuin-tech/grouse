@@ -1,10 +1,11 @@
 import asyncio
-from typing import List
+from typing import List, Optional
 
 import aiohttp
 import instructor
 import litellm
 import numpy as np
+from importlib_resources import files
 from jinja2 import Environment, FileSystemLoader
 from tqdm.asyncio import tqdm
 
@@ -34,13 +35,22 @@ class GroundedQAEvaluator:
     def __init__(
         self,
         model_name: str = "gpt-4",
-        prompts_path: str = "grouse/gpt4_prompts",
-        cache_path: str = ".grouse_cache/",
+        prompts_path: Optional[str] = None,
+        cache_path: Optional[str] = None,
     ):
         self.model_name = model_name
-        self.environment = Environment(loader=FileSystemLoader(prompts_path))
+        if prompts_path is None:
+            self.environment = Environment(
+                loader=FileSystemLoader(files("grouse").joinpath("gpt4_prompts"))
+            )
+        else:
+            self.environment = Environment(loader=FileSystemLoader(prompts_path))
 
-        cache = litellm.Cache(type="disk", disk_cache_dir=cache_path)
+        if cache_path is None:
+            cache = litellm.Cache(type="disk", disk_cache_dir=".grouse_cache/")
+        else:
+            cache = litellm.Cache(type="disk", disk_cache_dir=cache_path)
+
         self.tracker = Tracker()
         self.async_client = CachedAsyncInstructor(
             client=None,

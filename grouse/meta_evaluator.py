@@ -15,23 +15,21 @@ class MetaEvaluator:
     def __init__(self) -> None:
         pass
 
-    def compare(self, value: Optional[float], condition: str) -> bool:
-        # Handle None values
-        if value is None and condition == "==None":
-            return True
-        elif value is None:
-            return False
-
-        if condition.startswith(">="):
+    @staticmethod
+    def compare(value: Optional[float], condition: str) -> bool:
+        if value is not None and condition[:2] == ">=":
             return value >= float(condition[2:])
-        elif condition.startswith("<="):
+        elif value is not None and condition[:2] == "<=":
             return value <= float(condition[2:])
-        elif condition.startswith(">"):
+        elif value is not None and condition[:1] == ">":
             return value > float(condition[1:])
-        elif condition.startswith("<"):
+        elif value is not None and condition[:1] == "<":
             return value < float(condition[1:])
-        elif condition.startswith("=="):
-            return value == float(condition[2:])
+        elif condition[:2] == "==":
+            if condition[2:] == "None":
+                return value is None
+            else:
+                return value == float(condition[2:])
         else:
             raise ValueError("Invalid condition")
 
@@ -85,8 +83,8 @@ class MetaEvaluator:
 
             evaluated_positive_acceptance, evaluated_negative_rejection = (
                 get_positive_acceptance_negative_rejection(
-                    test_case.actual_evaluation.answer_relevancy.answer_relevancy,
-                    test_case.actual_evaluation.completeness.completeness,
+                    test_case.actual_evaluation.answer_relevancy,
+                    test_case.actual_evaluation.completeness,
                 )
             )
             positive_acceptance_result = self.compare(
