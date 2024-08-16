@@ -4,7 +4,7 @@ format:
 
 # Run linting
 lint:
-    ruff check experiments/
+    ruff check .
 
 # Run type checking
 type:
