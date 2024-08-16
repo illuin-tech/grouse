@@ -17,21 +17,23 @@ class MetaEvaluator:
 
     @staticmethod
     def compare(value: Optional[float], condition: str) -> bool:
-        if value is not None and condition[:2] == ">=":
-            return value >= float(condition[2:])
-        elif value is not None and condition[:2] == "<=":
-            return value <= float(condition[2:])
-        elif value is not None and condition[:1] == ">":
-            return value > float(condition[1:])
-        elif value is not None and condition[:1] == "<":
-            return value < float(condition[1:])
-        elif condition[:2] == "==":
-            if condition[2:] == "None":
-                return value is None
-            else:
-                return value == float(condition[2:])
+        if value is None:
+            return condition == "==None"
         else:
-            raise ValueError("Invalid condition")
+            if condition.endswith("None"):
+                return False
+            elif condition.startswith(">="):
+                return value >= float(condition[2:])
+            elif condition.startswith("<="):
+                return value <= float(condition[2:])
+            elif condition.startswith(">"):
+                return value > float(condition[1:])
+            elif condition.startswith("<"):
+                return value < float(condition[1:])
+            elif condition[:2] == "==":
+                return value == float(condition[2:])
+            else:
+                raise ValueError("Invalid condition")
 
     def __get_result(self, score: Score, score_name: str, condition: str) -> bool:
         if isinstance(score, Failed):
