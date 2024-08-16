@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Optional
 
 import click
 import jsonlines
@@ -32,13 +33,13 @@ def cli() -> None:
     "--prompts_path",
     type=str,
     help="Path to the evaluation prompts folder.",
-    default="grouse/gpt4_prompts",
+    default=None,
 )
 def evaluate(
     dataset_path: str,
     output_dir_path: str,
-    evaluator_model_name: str = "gpt-4",
-    prompts_path: str = "grouse/gpt4_prompts",
+    evaluator_model_name: Optional[str] = None,
+    prompts_path: Optional[str] = None,
 ) -> None:
     """Evaluate models on grounded question answering using any LiteLLM model.
     The default model is GPT-4.
@@ -48,6 +49,12 @@ def evaluate(
         actual_output (generation from the model to evaluate) and expected_output.
         OUTPUT_DIR_PATH (str): Path to directory where results report and
         evaluations are saved.
+
+    Options:
+        --evaluator_model_name (str): Name of the evaluator model. It can be any
+        LiteLLM model. The default model is gpt-4.
+        --prompts_path (str): Path to the folder containing the prompts of the evaluator
+        for each metric. By default, the prompts are those optimized for GPT-4.
     """
     evaluator = GroundedQAEvaluator(
         model_name=evaluator_model_name, prompts_path=prompts_path
@@ -75,17 +82,29 @@ def evaluate(
 @cli.command()
 @click.argument("model_name", type=str)
 @click.argument("output_dir_path", type=str)
-def meta_evaluate(model_name: str, output_dir_path: str) -> None:
+@click.option(
+    "--prompts_path",
+    type=str,
+    help="Path to the evaluation prompts folder.",
+    default=None,
+)
+def meta_evaluate(
+    model_name: str, output_dir_path: str, prompts_path: Optional[str] = None
+) -> None:
     """Evaluate evaluators on GroUSE unit tests.
 
     Args:
         MODEL_NAME (str): Name of model available through LiteLLM.
         OUTPUT_DIR_PATH (str): Path to directory where results report and
         unit test results are saved.
+
+    Options:
+        --prompts_path (str): Path to the folder containing the prompts of the
+        evaluator. By default, the prompts are those optimized for GPT-4.
     """
     evaluation_samples, conditions = load_unit_tests()
 
-    evaluator = GroundedQAEvaluator(model_name)
+    evaluator = GroundedQAEvaluator(model_name, prompts_path=prompts_path)
     evaluations = evaluator.evaluate_multiple_samples(evaluation_samples)
 
     meta_evaluator = MetaEvaluator()
