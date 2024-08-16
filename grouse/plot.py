@@ -11,15 +11,16 @@ from grouse.dtos import (
     MetaTestCaseResult,
 )
 
-value_colors = {1: "tab:blue", 0: "tab:red", 2: "tab:orange"}
-cmap = plt.cm.colors.ListedColormap([value_colors[0], value_colors[1], value_colors[2]])
+VALUE_COLORS = {1: "tab:blue", 0: "tab:red", 2: "tab:orange"}
+VALUE_LABELS = {1: "Test passed", 0: "Test failed", 2: "Output wrong format"}
+cmap = plt.cm.colors.ListedColormap([VALUE_COLORS[0], VALUE_COLORS[1], VALUE_COLORS[2]])
 norm = mcolors.BoundaryNorm(boundaries=[0, 1, 2, 3], ncolors=3)
 
 
 def add_custom_legend(
     hatch_legend: bool = True,
-    value_colors={1: "tab:blue", 0: "tab:red", 2: "tab:orange"},
-    value_labels={1: "Test passed", 0: "Test failed", 2: "Output wrong format"},
+    value_colors=VALUE_COLORS,
+    value_labels=VALUE_LABELS,
     fig=None,
     ax=None,
     *args,
@@ -237,7 +238,7 @@ def plot_matrices(meta_evaluations: List[MetaTestCaseResult]) -> None:
     value_labels = {0: "Test failed", 1: "Test passed", 2: "Output Wrong Format"}
     add_custom_legend(
         hatch_legend=True,
-        value_colors=value_colors,
+        value_colors=VALUE_COLORS,
         value_labels=value_labels,
         ax=axes[2],
         bbox_to_anchor=bbox_to_anchor,

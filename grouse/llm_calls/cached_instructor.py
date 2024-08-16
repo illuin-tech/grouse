@@ -39,8 +39,9 @@ class CachedAsyncInstructor(instructor.AsyncInstructor):
         **kwargs: Any,
     ) -> T | Awaitable[T]:
         kwargs = self.handle_kwargs(kwargs)
-        # When using JSON Schema, a system message gets prepended by instructor, messing with the cache.
-        # We keep the original parameters and pass a deepcopy to avoid storing the wrong key in the cache.
+        # When using JSON Schema, a system message gets prepended by instructor,
+        # messing with the cache. We keep the original parameters and pass a deepcopy
+        # to avoid storing the wrong key in the cache.
         original_messages = deepcopy(messages)
 
         result = await self.cache.async_get_cache(messages=original_messages, **kwargs)

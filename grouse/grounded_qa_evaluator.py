@@ -10,20 +10,16 @@ from tqdm.asyncio import tqdm
 
 from grouse.dtos import (
     AnswerRelevancy,
-    AnswerRelevancyPair,
     Completeness,
-    CompletenessPair,
     EvaluationSample,
     EvaluationsAndReport,
     Failed,
     Faithfulness,
-    FaithfulnessPair,
     GroundedQAEvaluation,
     GroundedQAEvaluationReport,
-    ScorePairT,
-    ScoreT,
+    Score,
+    ScorePair,
     Usefulness,
-    UsefulnessPair,
 )
 from grouse.llm_calls.cached_instructor import CachedAsyncInstructor
 from grouse.llm_calls.tracker import Tracker
@@ -35,7 +31,7 @@ class GroundedQAEvaluator:
         self,
         model_name: str = "gpt-4",
         prompts_path: str = "grouse/gpt4_prompts",
-        cache_path: str = ".cache_test/",
+        cache_path: str = ".grouse_cache/",
     ):
         self.model_name = model_name
         self.environment = Environment(loader=FileSystemLoader(prompts_path))
@@ -50,8 +46,8 @@ class GroundedQAEvaluator:
         )
 
     async def call_llm(
-        self, prompt: str, pair_model: ScorePairT, **kwargs
-    ) -> ScoreT | Failed:
+        self, prompt: str, pair_model: ScorePair, **kwargs
+    ) -> Score | Failed:
         pair = await self.async_client.chat.completions.create(
             model=self.model_name,
             messages=[{"role": "user", "content": prompt}],
@@ -71,7 +67,7 @@ class GroundedQAEvaluator:
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
         )
-        return await self.call_llm(prompt, AnswerRelevancyPair)
+        return await self.call_llm(prompt, ScorePair[AnswerRelevancy])
 
     async def evaluate_completeness(
         self, eval_sample: EvaluationSample
@@ -83,7 +79,7 @@ class GroundedQAEvaluator:
             expected_output=eval_sample.expected_output,
             contexts=eval_sample.references,
         )
-        return await self.call_llm(prompt, CompletenessPair)
+        return await self.call_llm(prompt, ScorePair[Completeness])
 
     async def evaluate_faithfulness(
         self, eval_sample: EvaluationSample
@@ -94,7 +90,7 @@ class GroundedQAEvaluator:
             expected_output=eval_sample.expected_output,
             contexts=eval_sample.references,
         )
-        return await self.call_llm(prompt, FaithfulnessPair)
+        return await self.call_llm(prompt, ScorePair[Faithfulness])
 
     async def evaluate_usefulness(
         self, eval_sample: EvaluationSample
@@ -105,7 +101,7 @@ class GroundedQAEvaluator:
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
         )
-        return await self.call_llm(prompt, UsefulnessPair)
+        return await self.call_llm(prompt, ScorePair[Usefulness])
 
     async def evaluate_single_sample(
         self, eval_sample: EvaluationSample

@@ -33,6 +33,18 @@ dependencies = [
     "matplotlib>=3.9.0,<4.0.0"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff==0.5.4",
+    "deptry==0.17.0",
+    "mypy==1.11.0",
+    "pytest==8.3.1",
+    "black==24.4.2",
+    "coverage==7.6.0",
+    "types-tqdm==4.66.0",
+    "mock==5.1.0",
+]
+
 [project.urls]
 homepage = "https://github.com/illuin-tech/grouse"
 repository = "https://github.com/illuin-tech/grouse"

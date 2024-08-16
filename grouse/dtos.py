@@ -1,67 +1,7 @@
-from typing import List, Literal, Optional, Union
+from typing import Generic, List, Literal, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 from typing_extensions import override
-
-
-# These models are used by instructor to enforce the output json schema
-# Be careful if you change these models, as the field names are optimized for the prompt
-class AnswerRelevancy(BaseModel):
-    answer_affirms_no_document_answers: bool
-    answer_relevancy_justification: str
-    answer_relevancy: Optional[int] = Field(
-        None,
-        description="Relevancy score of the answer from 1 to 5 or None",
-    )
-
-
-class AnswerRelevancyPair(BaseModel):
-    answer_1: AnswerRelevancy
-    answer_2: AnswerRelevancy
-
-
-class Completeness(BaseModel):
-    completeness_justification: str
-    completeness: Optional[int] = Field(
-        None,
-        description="Completeness score of the answer from 1 to 5 or None",
-    )
-
-
-class CompletenessPair(BaseModel):
-    answer_1: Completeness
-    answer_2: Completeness
-
-
-class Faithfulness(BaseModel):
-    faithfulness_justification: str
-    faithfulness: Optional[int] = Field(
-        None,
-        description="Faithfulness score of the answer in 0, 1 or None",
-    )
-
-
-class FaithfulnessPair(BaseModel):
-    answer_1: Faithfulness
-    answer_2: Faithfulness
-
-
-class Usefulness(BaseModel):
-    usefulness_justification: str
-    usefulness: Optional[int] = Field(
-        None, description="Usefulness score of the answer in 0, 1 or None"
-    )
-
-
-class UsefulnessPair(BaseModel):
-    answer_1: Usefulness
-    answer_2: Usefulness
-
-
-ScoreT = Union[AnswerRelevancy, Completeness, Faithfulness, Usefulness]
-ScorePairT = Union[
-    AnswerRelevancyPair, CompletenessPair, FaithfulnessPair, UsefulnessPair
-]
 
 
 # Sentinel class used until PEP 0661 is accepted
@@ -77,6 +17,56 @@ class Failed(BaseModel):
     @override
     def __repr__(self) -> str:
         return "FAILED"
+
+
+# These models are used by instructor to enforce the output json schema
+# Be careful if you change these models, as the field names are optimized for the prompt
+class Score(BaseModel):
+    def __repr__(self):
+        return f"<{self.__class__.__name__}>"
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class AnswerRelevancy(Score):
+    answer_affirms_no_document_answers: bool
+    answer_relevancy_justification: str
+    answer_relevancy: Optional[int] = Field(
+        None,
+        description="Relevancy score of the answer from 1 to 5 or None",
+    )
+
+
+class Completeness(Score):
+    completeness_justification: str
+    completeness: Optional[int] = Field(
+        None,
+        description="Completeness score of the answer from 1 to 5 or None",
+    )
+
+
+class Faithfulness(Score):
+    faithfulness_justification: str
+    faithfulness: Optional[int] = Field(
+        None,
+        description="Faithfulness score of the answer in 0, 1 or None",
+    )
+
+
+class Usefulness(Score):
+    usefulness_justification: str
+    usefulness: Optional[int] = Field(
+        None, description="Usefulness score of the answer in 0, 1 or None"
+    )
+
+
+T = TypeVar("T", bound=Score)
+
+
+class ScorePair(BaseModel, Generic[T]):
+    answer_1: T
+    answer_2: T
 
 
 # Evaluation DTOs
