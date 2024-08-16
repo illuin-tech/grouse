@@ -1,7 +1,7 @@
 [project]
 name = "grouse"
 description = "Evaluate Grounded Question Answering models and Grounded Question Answering evaluator models."
-version = "0.0.1"
+dynamic = ["version"]
 requires-python = ">=3.10,<3.13"
 authors = [
     { name = "Sacha Muller", email = "sacha.muller@illuin.tech" },
@@ -11,7 +11,6 @@ authors = [
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -50,7 +49,7 @@ homepage = "https://github.com/illuin-tech/grouse"
 repository = "https://github.com/illuin-tech/grouse"
 
 [build-system]
-requires = ["setuptools>=61.0.0", "wheel"]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
