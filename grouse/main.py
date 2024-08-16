@@ -26,8 +26,14 @@ def cli() -> None:
         "Name of the evaluator model. It can be any LiteLLM model. "
         "The default model is GPT-4."
     ),
+    default="gpt-4",
 )
-@click.option("--prompts_path", type=str, help="Path to the evaluation prompts folder.")
+@click.option(
+    "--prompts_path",
+    type=str,
+    help="Path to the evaluation prompts folder.",
+    default="grouse/gpt4_prompts",
+)
 def evaluate(
     dataset_path: str,
     output_dir_path: str,

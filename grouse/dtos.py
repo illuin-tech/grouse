@@ -1,4 +1,4 @@
-from typing import Generic, List, Literal, Optional, TypeVar
+from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 from typing_extensions import override
@@ -61,12 +61,32 @@ class Usefulness(Score):
     )
 
 
-T = TypeVar("T", bound=Score)
+# These models are used by instructor to enforce the input json schema
+# Don't try to use generic types here, as they are not supported by instuctor
+# because the name of the model would have '[' and ']' characters
+class AnswerRelevancyPair(BaseModel):
+    answer_1: AnswerRelevancy
+    answer_2: AnswerRelevancy
 
 
-class ScorePair(BaseModel, Generic[T]):
-    answer_1: T
-    answer_2: T
+class CompletenessPair(BaseModel):
+    answer_1: Completeness
+    answer_2: Completeness
+
+
+class FaithfulnessPair(BaseModel):
+    answer_1: Faithfulness
+    answer_2: Faithfulness
+
+
+class UsefulnessPair(BaseModel):
+    answer_1: Usefulness
+    answer_2: Usefulness
+
+
+ScorePair = Union[
+    AnswerRelevancyPair, CompletenessPair, FaithfulnessPair, UsefulnessPair
+]
 
 
 # Evaluation DTOs
