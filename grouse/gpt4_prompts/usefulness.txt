@@ -1,0 +1,43 @@
+[TASK]
+Task: Grounded Question Answering
+Based solely on the content of the references, the objective is to generate a response to the user's query. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+[/TASK]
+[EVALUATION INSTRUCTIONS]
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user request.
+I want you to assign to each answer a usefulness grade of 0 or 1:
+- Usefulness is only evaluated when the answer says that no document precisely answers the user's question, but it still provides information
+related to the question.
+- Usefulness measures how interesting the related information is to know for the user, given that there is no answer in the references.
+- If the answer responds to the user request, usefulness must be `null`.
+- If the answer indicates that no document responds to the user request, without adding other information, usefulness must be `null`.
+
+Rating scale:
+null - (The answer responds to the user request) OR (the answer does not answer the user's question AND does not provide any related information).
+1 - The related information is generally related to the question and adds value to the general understanding of the topic.
+0 - The related information is completely off-topic with respect to the question asked.
+
+Before assigning each grade, you will start by verifying that the answer indeed asserts "No document responds...", then you will check that the answer contains related information in addition to this assertion. If one of these two conditions is `false` then usefulness must be `null`.
+If both conditions are indeed true, then you will analyze the usefulness of having added this related information to evaluate the usefulness grade. Your response should be in JSON format, respecting the following format:
+{
+    "answer_1": {
+        "answer_affirms_no_document_answers": X,
+        "answer_contains_related_information": X,
+        "usefulness_justification": "...",
+        "usefulness": Y
+    },
+    "answer_2": {
+        "answer_affirms_no_document_answers": X,
+        "answer_contains_related_information": X,
+        "usefulness_justification": "...",
+        "usefulness": Y
+    }
+}
+Where "..." is a string, X is a boolean, and Y is an integer that is 0 or 1 or `null`.
+[/EVALUATION INSTRUCTIONS]
+[SAMPLE]
+User request: {{ input }}
+[/SAMPLE]
+[TO EVALUATE]
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+[/TO EVALUATE]

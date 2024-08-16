@@ -1,0 +1,99 @@
+[project]
+name = "grouse"
+description = "Evaluate Grounded Question Answering models and Grounded Question Answering evaluator models."
+dynamic = ["version"]
+requires-python = ">=3.10,<3.13"
+authors = [
+    { name = "Sacha Muller", email = "sacha.muller@illuin.tech" },
+    { name = "Antonio Loison", email = "antonio.loison@illuin.tech" },
+    { name = "Bilel Omrani", email = "bilel.omrani@illuin.tech" },
+]
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "click>=8.1.0,<8.1.7",
+    "litellm>=1.41.0,<2.0.0",
+    "instructor>=1.3.5,<2.0.0",
+    "diskcache>=5.6.0,<6.0.0",
+    "numpy>=1.21.2,<3.0.0",
+    "jsonlines>=4.0.0,<5.0.0",
+    "datasets==2.20.0",
+    "Jinja2>=3.1.0,<4.0.0",
+    "aiohttp>=3.9.0,<4.0.0",
+    "tqdm>=4.66.0,<5.0.0",
+    "pydantic>=2.5.0,<3.0.0",
+    "diskcache>=5.6.0,<6.0.0",
+    "matplotlib>=3.9.0,<4.0.0",
+    "importlib-resources>=6.4.0,<7.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff==0.5.4",
+    "deptry==0.17.0",
+    "mypy==1.11.0",
+    "pytest==8.3.1",
+    "black==24.4.2",
+    "coverage==7.6.0",
+    "types-tqdm==4.66.0",
+    "mock==5.1.0",
+]
+
+[project.urls]
+homepage = "https://github.com/illuin-tech/grouse"
+repository = "https://github.com/illuin-tech/grouse"
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+fallback_version = "0.0.1"
+
+[project.scripts]
+grouse = "grouse.main:cli"
+
+[tool.setuptools.packages.find]
+include = ["grouse", "grouse.*"]
+
+[tool.black]
+line-length = 88
+extend-exclude = "^.venv"
+
+[tool.ruff]
+lint.select = ["E", "F", "W", "I", "N"]
+line-length = 88
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"grouse/plot.py" = ["E501"]
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+enable_error_code = ["ignore-without-code"]
+exclude = ["venv/", ".venv/"]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/typings"
+no_implicit_optional = true
+show_error_codes = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["datasets"]
+ignore_missing_imports = true
+
+[tool.deptry.per_rule_ignores]
+DEP002 = [
+    "diskcache",
+]
