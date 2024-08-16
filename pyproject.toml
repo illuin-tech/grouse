@@ -2,7 +2,7 @@
 name = "grouse"
 description = "Evaluate Grounded Question Answering models and Grounded Question Answering evaluator models."
 version = "0.0.1"
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.10,<3.13"
 authors = [
     { name = "Sacha Muller", email = "sacha.muller@illuin.tech" },
     { name = "Antonio Loison", email = "antonio.loison@illuin.tech" },
