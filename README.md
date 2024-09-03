@@ -14,8 +14,10 @@ Evaluate Grounded Question Answering (GQA) models and GQA evaluator models. We i
 ## Install
 
 ```bash
-pip install -e .
+pip install grouse
 ```
+
+Then, setup your OpenAI credentials by creating an `.env` file by copying the `.env.dist` file, filling in your OpenAI API key and organization id and exporting the environment variables `export $(cat .env | xargs)`.
 
 ## Command Line Usage
 
