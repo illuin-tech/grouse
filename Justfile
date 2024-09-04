@@ -16,7 +16,6 @@ check-deps:
 
 # Fix most linting and formatting issues automatically
 reformat:
-    black --preview ./
     ruff format .
     ruff check --fix .
 
