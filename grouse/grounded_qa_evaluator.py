@@ -85,11 +85,15 @@ class GroundedQAEvaluator:
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
                 )
-            pair = pair_model(**json.loads(response.choices[0].message.content))
-            self.cost += litellm.completion_cost(response)
-            return pair.answer_2
+            loaded_response = json.loads(response.choices[0].message.content)
+            if isinstance(loaded_response, dict):
+                pair = pair_model(**loaded_response)
+                self.cost += litellm.completion_cost(response)
+                return pair.answer_2
+            else:
+                raise ValueError("Response is not a dictionary")
 
-        except (ValidationError, json.decoder.JSONDecodeError) as val_error:
+        except (ValidationError, json.decoder.JSONDecodeError, ValueError) as val_error:
             logging.debug(
                 f"Call to {self.model_name} with prompt: {prompt}\n"
                 f"returned the following error:\n{val_error}"
