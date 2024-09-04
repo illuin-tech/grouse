@@ -4,15 +4,19 @@ from pydantic import BaseModel, Field
 from typing_extensions import override
 
 
-# Sentinel class used until PEP 0661 is accepted
 class Failed(BaseModel):
     """
-    A sentinel singleton class used to distinguish failed request results
-    from results with the value None (which may have different behavior).
+    A sentinel class used to distinguish failed request results from results
+    with the value None (which may have different behavior).
     """
+
+    error: Optional[str] = None
 
     def __bool__(self) -> Literal[False]:
         return False
+
+    def __int__(self) -> int:
+        return 0
 
     @override
     def __repr__(self) -> str:

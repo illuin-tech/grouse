@@ -37,8 +37,12 @@ def get_positive_acceptance_negative_rejection(
     answer_relevancy: AnswerRelevancy | Failed,
     completeness: Completeness | Failed,
 ) -> Tuple[Optional[int] | Failed, Optional[int] | Failed]:
-    if isinstance(answer_relevancy, Failed) or isinstance(completeness, Failed):
-        return Failed(), Failed()
+    if isinstance(answer_relevancy, Failed):
+        return Failed(error="answer relevancy failed"), Failed(
+            error="answer relevancy failed"
+        )
+    elif isinstance(completeness, Failed):
+        return Failed(error="completeness failed"), Failed(error="completeness failed")
     else:
         if answer_relevancy.answer_relevancy is None:
             if completeness.completeness is None:
@@ -75,4 +79,5 @@ def load_unit_tests() -> (
             )
         )
         conditions.append(ExpectedGroundedQAEvaluation(**unit_test["conditions"]))
+
     return evaluation_samples, conditions

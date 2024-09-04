@@ -1,12 +1,15 @@
 import asyncio
+import json
+import logging
+import sys
 from typing import List, Optional
 
 import aiohttp
-import instructor
 import litellm
 import numpy as np
 from importlib_resources import files
 from jinja2 import Environment, FileSystemLoader
+from pydantic_core import ValidationError
 from tqdm.asyncio import tqdm
 
 from grouse.dtos import (
@@ -26,9 +29,12 @@ from grouse.dtos import (
     Usefulness,
     UsefulnessPair,
 )
-from grouse.llm_calls.cached_instructor import CachedAsyncInstructor
-from grouse.llm_calls.tracker import Tracker
 from grouse.utils import get_positive_acceptance_negative_rejection
+
+STRUCTURED_OUTPUTS_SUPPORTING_MODELS = [
+    "gpt-4o-mini-2024-07-18",
+    "gpt-4o-2024-08-06",
+]
 
 
 class GroundedQAEvaluator:
@@ -46,28 +52,49 @@ class GroundedQAEvaluator:
         else:
             self.environment = Environment(loader=FileSystemLoader(prompts_path))
 
-        if cache_path is None:
-            cache = litellm.Cache(type="disk", disk_cache_dir=".grouse_cache/")
-        else:
-            cache = litellm.Cache(type="disk", disk_cache_dir=cache_path)
-
-        self.tracker = Tracker()
-        self.async_client = CachedAsyncInstructor(
-            client=None,
-            create=instructor.patch(create=litellm.acompletion),
-            cache=cache,
-            tracker=self.tracker,
+        self.logger = logging.getLogger("LLM Call Tracker")
+        self.logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+
+        litellm.enable_cache("disk", cache_path)
+
+        self.cost = 0
 
     async def call_llm(self, prompt: str, pair_model: ScorePair) -> Score | Failed:
-        pair = await self.async_client.chat.completions.create(
-            model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            response_model=pair_model,
-        )
-        if pair is None:
-            return Failed()
-        return pair.answer_2
+        try:
+            if self.model_name in STRUCTURED_OUTPUTS_SUPPORTING_MODELS:
+                response = await litellm.acompletion(
+                    model=self.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format=pair_model,
+                )
+            elif "-turbo" in self.model_name or "4o" in self.model_name:
+                response = await litellm.acompletion(
+                    model=self.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={"type": "json_object"},
+                )
+            else:
+                response = await litellm.acompletion(
+                    model=self.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+            pair = pair_model(**json.loads(response.choices[0].message.content))
+            self.cost += litellm.completion_cost(response)
+            return pair.answer_2
+
+        except (ValidationError, json.decoder.JSONDecodeError) as val_error:
+            logging.debug(
+                f"Call to {self.model_name} with prompt: {prompt}\n"
+                f"returned the following error:\n{val_error}"
+            )
+            return Failed(error=str(val_error))
 
     async def evaluate_answer_relevancy(
         self, eval_sample: EvaluationSample
@@ -121,12 +148,14 @@ class GroundedQAEvaluator:
         completeness = await self.evaluate_completeness(eval_sample)
 
         if isinstance(answer_relevancy, Failed):
-            usefulness = Failed()
-            faithfulness = Failed()
+            usefulness = Failed(error="answer_relevancy failed")
+            faithfulness = Failed(error="answer_relevancy failed")
         else:
             if answer_relevancy.answer_relevancy is None:
                 usefulness = await self.evaluate_usefulness(eval_sample)
-                if usefulness.usefulness is None:
+                if isinstance(usefulness, Failed):
+                    faithfulness = Failed(error="usefulness failed")
+                elif usefulness.usefulness is None:
                     faithfulness = Faithfulness(
                         faithfulness_justification="", faithfulness=None
                     )
@@ -163,7 +192,7 @@ class GroundedQAEvaluator:
         self, eval_samples: List[EvaluationSample]
     ) -> List[GroundedQAEvaluation]:
         results = asyncio.run(self.async_evaluate_multiple_samples(eval_samples))
-        self.tracker.log_summary()
+        self.logger.info(f"Cost: {self.cost:.4f}$")
         return results
 
     def evaluate(self, eval_samples: List[EvaluationSample]) -> EvaluationsAndReport:
