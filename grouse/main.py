@@ -4,21 +4,16 @@ from typing import Optional
 
 import click
 import jsonlines
-import litellm
 
 from grouse.dtos import EvaluationSample, MetaTestCase, MetaTestCaseResult
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
 from grouse.meta_evaluator import MetaEvaluator
 from grouse.plot import plot_matrices
+from grouse.register_models import register_models
 from grouse.utils import NanConverter, load_unit_tests
 
-litellm.register_model({
-    "fireworks_ai/accounts/fireworks/models/llama-v3p1-8b-instruct": {
-        "max_tokens": 8192,
-        "input_cost_per_token": 0.0000002,
-        "output_cost_per_token": 0.0000002,
-    }
-})
+register_models()
+
 
 @click.group()
 def cli() -> None:

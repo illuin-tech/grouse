@@ -73,6 +73,21 @@ def test_load_unit_tests() -> None:
     with patch(
         "grouse.utils.load_dataset",
         return_value={
+            "train": [
+                {
+                    "input": "Quel est la capitale de la France ?",
+                    "actual_output": "Paris[1]",
+                    "expected_output": "Paris[1]",
+                    "references": ["Paris"],
+                    "metadata": {},
+                    "conditions": {
+                        "answer_relevancy_condition": "==5",
+                        "completeness_condition": "==5",
+                        "faithfulness_condition": "==1",
+                        "usefulness_condition": "==None",
+                    },
+                }
+            ],
             "test": [
                 {
                     "input": "Quel est la capitale de la France ?",

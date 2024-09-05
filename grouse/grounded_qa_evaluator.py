@@ -74,20 +74,20 @@ class GroundedQAEvaluator:
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
                     response_format=pair_model,
-                    **kwargs
+                    **kwargs,
                 )
             elif "-turbo" in self.model_name or "4o" in self.model_name:
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
                     response_format={"type": "json_object"},
-                    **kwargs
+                    **kwargs,
                 )
             else:
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
-                    **kwargs
+                    **kwargs,
                 )
             loaded_response = json.loads(response.choices[0].message.content)
             if isinstance(loaded_response, dict):
