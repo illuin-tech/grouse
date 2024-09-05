@@ -68,22 +68,26 @@ class GroundedQAEvaluator:
 
     async def call_llm(self, prompt: str, pair_model: ScorePair) -> Score | Failed:
         try:
+            kwargs = {"temperature": 0.01, "max_tokens": 2048}
             if self.model_name in STRUCTURED_OUTPUTS_SUPPORTING_MODELS:
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
                     response_format=pair_model,
+                    **kwargs
                 )
             elif "-turbo" in self.model_name or "4o" in self.model_name:
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
                     response_format={"type": "json_object"},
+                    **kwargs
                 )
             else:
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
+                    **kwargs
                 )
             loaded_response = json.loads(response.choices[0].message.content)
             if isinstance(loaded_response, dict):
