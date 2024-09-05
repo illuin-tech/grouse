@@ -37,7 +37,7 @@ class MetaEvaluator:
 
     def __get_result(self, score: Score, score_name: str, condition: str) -> bool:
         if isinstance(score, Failed):
-            return Failed()
+            return Failed(error=score.error)
         return self.compare(getattr(score, score_name), condition)
 
     def evaluate_single_test_case(self, test_case: MetaTestCase) -> MetaTestCaseResult:

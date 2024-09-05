@@ -9,7 +9,10 @@ from grouse.dtos import EvaluationSample, MetaTestCase, MetaTestCaseResult
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
 from grouse.meta_evaluator import MetaEvaluator
 from grouse.plot import plot_matrices
+from grouse.register_models import register_models
 from grouse.utils import NanConverter, load_unit_tests
+
+register_models()
 
 
 @click.group()
@@ -32,7 +35,10 @@ def cli() -> None:
 @click.option(
     "--prompts_path",
     type=str,
-    help="Path to the evaluation prompts folder.",
+    help=(
+        "Path to the folder containing the prompts of the evaluator. "
+        "By default, the prompts are those optimized for GPT-4."
+    ),
     default=None,
 )
 def evaluate(
@@ -49,12 +55,6 @@ def evaluate(
         actual_output (generation from the model to evaluate) and expected_output.
         OUTPUT_DIR_PATH (str): Path to directory where results report and
         evaluations are saved.
-
-    Options:
-        --evaluator_model_name (str): Name of the evaluator model. It can be any
-        LiteLLM model. The default model is gpt-4.
-        --prompts_path (str): Path to the folder containing the prompts of the evaluator
-        for each metric. By default, the prompts are those optimized for GPT-4.
     """
     evaluator = GroundedQAEvaluator(
         model_name=evaluator_model_name, prompts_path=prompts_path
@@ -85,7 +85,10 @@ def evaluate(
 @click.option(
     "--prompts_path",
     type=str,
-    help="Path to the evaluation prompts folder.",
+    help=(
+        "Path to the folder containing the prompts of the evaluator. "
+        "By default, the prompts are those optimized for GPT-4."
+    ),
     default=None,
 )
 def meta_evaluate(
@@ -97,10 +100,6 @@ def meta_evaluate(
         MODEL_NAME (str): Name of model available through LiteLLM.
         OUTPUT_DIR_PATH (str): Path to directory where results report and
         unit test results are saved.
-
-    Options:
-        --prompts_path (str): Path to the folder containing the prompts of the
-        evaluator. By default, the prompts are those optimized for GPT-4.
     """
     evaluation_samples, conditions = load_unit_tests()
 
