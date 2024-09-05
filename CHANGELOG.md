@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.2.1
+
+### Fixed
+
+- Add missing model register file.
+
 ## 0.2.0
 
 ### Added
