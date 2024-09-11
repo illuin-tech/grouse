@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 from unittest.mock import patch
 
 import pytest
@@ -69,7 +69,8 @@ def test_get_positive_acceptance_negative_rejection(
     assert nr == expected_negative_rejection
 
 
-def test_load_unit_tests() -> None:
+@pytest.mark.parametrize("dataset_split", ["train", "test"])
+def test_load_unit_tests(dataset_split: Literal["train"] | Literal["test"]) -> None:
     with patch(
         "grouse.utils.load_dataset",
         return_value={
@@ -105,7 +106,7 @@ def test_load_unit_tests() -> None:
             ],
         },
     ):
-        samples, conditions = load_unit_tests()
+        samples, conditions = load_unit_tests(dataset_split)
         assert isinstance(samples, list)
         assert isinstance(conditions, list)
         assert isinstance(samples[0], EvaluationSample)
