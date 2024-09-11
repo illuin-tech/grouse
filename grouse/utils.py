@@ -1,6 +1,6 @@
 import math
 from json import JSONEncoder
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Literal
 
 from datasets import load_dataset
 
@@ -61,10 +61,10 @@ def get_positive_acceptance_negative_rejection(
         return positive_acceptance, negative_rejection
 
 
-def load_unit_tests() -> (
-    Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]
-):
-    unit_tests = load_dataset(DATASET_NAME)["test"]
+def load_unit_tests(
+    dataset_split: Literal["train"] | Literal["test"],
+) -> Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]:
+    unit_tests = load_dataset(DATASET_NAME)[dataset_split]
     evaluation_samples = []
     conditions = []
 

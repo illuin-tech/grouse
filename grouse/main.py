@@ -91,8 +91,16 @@ def evaluate(
     ),
     default=None,
 )
+@click.option(
+    "--train_set",
+    is_flag=True,
+    help="Path to the evaluation prompts folder.",
+)
 def meta_evaluate(
-    model_name: str, output_dir_path: str, prompts_path: Optional[str] = None
+    model_name: str,
+    output_dir_path: str,
+    prompts_path: Optional[str] = None,
+    train_set: bool = False,
 ) -> None:
     """Evaluate evaluators on GroUSE unit tests.
 
@@ -101,7 +109,7 @@ def meta_evaluate(
         OUTPUT_DIR_PATH (str): Path to directory where results report and
         unit test results are saved.
     """
-    evaluation_samples, conditions = load_unit_tests()
+    evaluation_samples, conditions = load_unit_tests("train" if train_set else "test")
 
     evaluator = GroundedQAEvaluator(model_name, prompts_path=prompts_path)
     evaluations = evaluator.evaluate_multiple_samples(evaluation_samples)
