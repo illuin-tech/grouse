@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.3.0
+
+### Added
+
+- Add flag to use the training dataset in meta evaluation.
+
 ## 0.2.1
 
 ### Fixed
