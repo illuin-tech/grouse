@@ -1,6 +1,6 @@
 import math
 from json import JSONEncoder
-from typing import Any, List, Optional, Tuple, Literal
+from typing import Any, List, Literal, Optional, Tuple
 
 from datasets import load_dataset
 
