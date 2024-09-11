@@ -94,7 +94,9 @@ def evaluate(
 @click.option(
     "--train_set",
     is_flag=True,
-    help="Path to the evaluation prompts folder.",
+    help="Optional flag to meta-evaluate on the train set (16 tests) "
+    "instead of the test set (144 tests). The train set is meant "
+    "to be used during the prompt engineering phase.",
 )
 def meta_evaluate(
     model_name: str,
