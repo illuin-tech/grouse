@@ -14,7 +14,7 @@ authors:
   given-names: "Gautier"
   email: "gautier.viaud@illuin.tech"
 title: "GroUSE: A Benchmark to Evaluate Evaluators in Grounded Question Answering"
-date-released: 2024-08-03
+date-released: 2024-09-11
 url: "https://github.com/illuin-tech/grouse"
 preferred-citation:
   type: article
@@ -30,6 +30,8 @@ preferred-citation:
     email: "bilel.omrani@illuin.tech"
   - family-names: "Viaud"
     given-names: "Gautier"
-  month: 8
+  doi: "arXiv.2409.06595"
+  month: 9
   title: "GroUSE: A Benchmark to Evaluate Evaluators in Grounded Question Answering"
   year: 2024
+  url: "https://arxiv.org/pdf/2409.06595"

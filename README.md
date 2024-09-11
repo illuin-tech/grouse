@@ -88,11 +88,13 @@ evaluator.evaluate([sample])
 ## Citation
 
 ```latex
-@misc{muller2024grouse,
+@misc{muller2024grousebenchmarkevaluateevaluators,
       title={GroUSE: A Benchmark to Evaluate Evaluators in Grounded Question Answering}, 
       author={Sacha Muller and António Loison and Bilel Omrani and Gautier Viaud},
       year={2024},
+      eprint={2409.06595},
       archivePrefix={arXiv},
-      primaryClass={cs.IR},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2409.06595}, 
 }
 ```
