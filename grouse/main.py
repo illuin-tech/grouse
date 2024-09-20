@@ -156,7 +156,7 @@ def plot(meta_test_results_path: str) -> None:
         META_TEST_RESULTS_PATH (str): Path to meta evaluation results in
         jsonlines format.
     """
-    evaluation_samples, _ = load_unit_tests()
+    evaluation_samples, _ = load_unit_tests(dataset_split="test")
 
     results = []
     with jsonlines.open(meta_test_results_path, "r") as reader:
