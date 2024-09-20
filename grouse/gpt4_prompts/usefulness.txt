@@ -5,8 +5,7 @@ Based solely on the content of the references, the objective is to generate a re
 [EVALUATION INSTRUCTIONS]
 I will provide you with two answers, numbered 1 and 2, each containing a response to the user request.
 I want you to assign to each answer a usefulness grade of 0 or 1:
-- Usefulness is only evaluated when the answer says that no document precisely answers the user's question, but it still provides information
-related to the question.
+- Usefulness is only evaluated when the answer says that no document precisely answers the user's question, but it still provides information related to the question.
 - Usefulness measures how interesting the related information is to know for the user, given that there is no answer in the references.
 - If the answer responds to the user request, usefulness must be `null`.
 - If the answer indicates that no document responds to the user request, without adding other information, usefulness must be `null`.

@@ -31,11 +31,6 @@ from grouse.dtos import (
 )
 from grouse.utils import get_positive_acceptance_negative_rejection
 
-STRUCTURED_OUTPUTS_SUPPORTING_MODELS = [
-    "gpt-4o-mini-2024-07-18",
-    "gpt-4o-2024-08-06",
-]
-
 
 class GroundedQAEvaluator:
     def __init__(
@@ -69,14 +64,7 @@ class GroundedQAEvaluator:
     async def call_llm(self, prompt: str, pair_model: ScorePair) -> Score | Failed:
         try:
             kwargs = {"temperature": 0.01, "max_tokens": 2048}
-            if self.model_name in STRUCTURED_OUTPUTS_SUPPORTING_MODELS:
-                response = await litellm.acompletion(
-                    model=self.model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    response_format=pair_model,
-                    **kwargs,
-                )
-            elif "-turbo" in self.model_name or "4o" in self.model_name:
+            if "-turbo" in self.model_name or "4o" in self.model_name:
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
