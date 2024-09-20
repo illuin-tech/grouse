@@ -1,16 +1,13 @@
 [TASK]
 Task: Grounded Question Answering
-Based solely on the content of the references, the objective is to generate a response to the user's query. Each statement must be followed by
-the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should
-begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+Based solely on the content of the references, the objective is to generate a response to the user's query. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
 [/TASK]
 [EVALUATION INSTRUCTIONS]
 I will provide you with two answers, numbered 1 and 2, each containing a response to the user request.
 I want you to assign to each answer a boolean faithfulness grade. An answer is faithful if:
 - Each statement made by the answer is followed by a source indicating the reference from which it is drawn.
 - The information preceding the source is indeed from the corresponding reference.
-- The information preceding the source is in agreement with the corresponding reference, and does not assert facts different from those
-indicated in the reference.
+- The information preceding the source is in agreement with the corresponding reference, and does not assert facts different from those indicated in the reference.
 In all other cases, the response is considered non-faithful.
 Faithfulness is also considered non-measurable if the answer asserts that no document responds to the question, and it does not provide any related information, it is then `null`.
 
