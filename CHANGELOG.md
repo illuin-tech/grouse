@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.3.1
+
+### Fixed
+
+- Fixed prompts newlines
+- Removed latest structured generation because faithfulness and usefulness dtos did not support it
+- Fixed dataset loading in plot function
+
 ## 0.3.0
 
 ### Added
