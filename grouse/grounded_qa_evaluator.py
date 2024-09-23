@@ -95,7 +95,7 @@ class GroundedQAEvaluator:
     async def evaluate_answer_relevancy(
         self, eval_sample: EvaluationSample
     ) -> AnswerRelevancy | Failed:
-        template = self.environment.get_template("answer_relevancy.txt")
+        template = self.environment.get_template("answer_relevancy.txt.jinja")
         prompt = template.render(
             input=eval_sample.input,
             actual_output=eval_sample.actual_output,
@@ -106,7 +106,7 @@ class GroundedQAEvaluator:
     async def evaluate_completeness(
         self, eval_sample: EvaluationSample
     ) -> Completeness | Failed:
-        template = self.environment.get_template("completeness.txt")
+        template = self.environment.get_template("completeness.txt.jinja")
         prompt = template.render(
             input=eval_sample.input,
             actual_output=eval_sample.actual_output,
@@ -118,7 +118,7 @@ class GroundedQAEvaluator:
     async def evaluate_faithfulness(
         self, eval_sample: EvaluationSample
     ) -> Faithfulness | Failed:
-        template = self.environment.get_template("faithfulness.txt")
+        template = self.environment.get_template("faithfulness.txt.jinja")
         prompt = template.render(
             actual_output=eval_sample.actual_output,
             expected_output=eval_sample.expected_output,
@@ -129,7 +129,7 @@ class GroundedQAEvaluator:
     async def evaluate_usefulness(
         self, eval_sample: EvaluationSample
     ) -> Usefulness | Failed:
-        template = self.environment.get_template("usefulness.txt")
+        template = self.environment.get_template("usefulness.txt.jinja")
         prompt = template.render(
             input=eval_sample.input,
             actual_output=eval_sample.actual_output,
