@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Fixed
+
+- Rename jinja templates.
+
 ## 0.3.1
 
 ### Fixed
