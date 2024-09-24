@@ -8,7 +8,8 @@ from grouse.dtos import (
     MetaTestCaseResult,
     Score,
 )
-from grouse.utils import get_positive_acceptance_negative_rejection
+from grouse.grounded_qa_evaluator import GroundedQAEvaluator
+from grouse.utils import get_positive_acceptance_negative_rejection, load_unit_tests
 
 
 class MetaEvaluator:
@@ -153,3 +154,32 @@ class MetaEvaluator:
                 total=total,
             ),
         )
+
+
+def meta_evaluate_pipeline(
+    model_name: str,
+    prompts_path: Optional[str] = None,
+    train_set: bool = False,
+) -> List[MetaEvaluationsAndReport]:
+    evaluation_samples, conditions = load_unit_tests("train" if train_set else "test")
+
+    evaluator = GroundedQAEvaluator(model_name, prompts_path=prompts_path)
+    evaluations = evaluator.evaluate_multiple_samples(evaluation_samples)
+
+    meta_evaluator = MetaEvaluator()
+
+    meta_test_cases = []
+    for sample, evaluation, condition in zip(
+        evaluation_samples, evaluations, conditions
+    ):
+        meta_test_cases.append(
+            MetaTestCase(
+                evaluation_sample=sample,
+                actual_evaluation=evaluation,
+                expected_evaluation=condition,
+            )
+        )
+
+    meta_evaluations = meta_evaluator.evaluate(meta_test_cases)
+
+    return meta_evaluations

@@ -5,9 +5,9 @@ from typing import Optional
 import click
 import jsonlines
 
-from grouse.dtos import EvaluationSample, MetaTestCase, MetaTestCaseResult
+from grouse.dtos import EvaluationSample, MetaTestCaseResult
 from grouse.grounded_qa_evaluator import GroundedQAEvaluator
-from grouse.meta_evaluator import MetaEvaluator
+from grouse.meta_evaluator import meta_evaluate_pipeline
 from grouse.plot import plot_matrices
 from grouse.register_models import register_models
 from grouse.utils import NanConverter, load_unit_tests
@@ -111,26 +111,8 @@ def meta_evaluate(
         OUTPUT_DIR_PATH (str): Path to directory where results report and
         unit test results are saved.
     """
-    evaluation_samples, conditions = load_unit_tests("train" if train_set else "test")
 
-    evaluator = GroundedQAEvaluator(model_name, prompts_path=prompts_path)
-    evaluations = evaluator.evaluate_multiple_samples(evaluation_samples)
-
-    meta_evaluator = MetaEvaluator()
-
-    meta_test_cases = []
-    for sample, evaluation, condition in zip(
-        evaluation_samples, evaluations, conditions
-    ):
-        meta_test_cases.append(
-            MetaTestCase(
-                evaluation_sample=sample,
-                actual_evaluation=evaluation,
-                expected_evaluation=condition,
-            )
-        )
-
-    meta_evaluations = meta_evaluator.evaluate(meta_test_cases)
+    meta_evaluations = meta_evaluate_pipeline(model_name, prompts_path, train_set)
 
     os.makedirs(output_dir_path, exist_ok=True)
     with open(
