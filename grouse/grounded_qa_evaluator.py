@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import sys
 from typing import List, Optional
 
@@ -61,9 +62,22 @@ class GroundedQAEvaluator:
 
         self.cost = 0
 
+    @staticmethod
+    def postprocess_response(response_str: str) -> str:
+        pattern = r"```[a-zA-Z]*\n(.*?)```"
+        matches = re.findall(pattern, response_str, re.DOTALL)
+
+        if matches:
+            return matches[0].strip()
+        else:
+            return response_str.strip()
+
     async def call_llm(self, prompt: str, pair_model: ScorePair) -> Score | Failed:
         try:
-            kwargs = {"temperature": 0.01, "max_tokens": 2048}
+            if "o1" in self.model_name:
+                kwargs = {}
+            else:
+                kwargs = {"temperature": 0.01, "max_tokens": 2048}
             if "-turbo" in self.model_name or "4o" in self.model_name:
                 response = await litellm.acompletion(
                     model=self.model_name,
@@ -77,7 +91,10 @@ class GroundedQAEvaluator:
                     messages=[{"role": "user", "content": prompt}],
                     **kwargs,
                 )
-            loaded_response = json.loads(response.choices[0].message.content)
+            postprocessed_response = self.postprocess_response(
+                response.choices[0].message.content
+            )
+            loaded_response = json.loads(postprocessed_response)
             if isinstance(loaded_response, dict):
                 pair = pair_model(**loaded_response)
                 self.cost += litellm.completion_cost(response)
@@ -238,14 +255,14 @@ class GroundedQAEvaluator:
             [
                 e.positive_acceptance
                 for e in evaluations
-                if e.positive_acceptance is not None
+                if isinstance(e.positive_acceptance, int)
             ]
         )
         nr_mean = np.mean(
             [
                 e.negative_rejection
                 for e in evaluations
-                if e.negative_rejection is not None
+                if isinstance(e.negative_rejection, int)
             ]
         )
         mean = np.mean([ar_mean, c_mean, f_mean, u_mean, pa_mean, nr_mean])
