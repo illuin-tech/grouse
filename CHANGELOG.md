@@ -1,10 +1,21 @@
 # CHANGELOG
 
-## Unreleased
+## 0.4.1
+
+### Fix
+
+- Fix API Connection Errors with Semaphore
+
+## 0.4.0
+
+### Added
+
+- Added o1 support
+- Added meta evaluation pipeline to Python package
 
 ### Fixed
 
-- Rename jinja templates.
+- Change jinja template extensions
 
 ## 0.3.1
 
