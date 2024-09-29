@@ -5,7 +5,6 @@ import re
 import sys
 from typing import List, Optional
 
-import aiohttp
 import litellm
 import numpy as np
 from importlib_resources import files
@@ -191,25 +190,38 @@ class GroundedQAEvaluator:
             negative_rejection=negative_rejection,
         )
 
+    async def __evaluate_sample_with_semaphore(
+        self, sample: EvaluationSample, semaphore: asyncio.Semaphore
+    ):
+        async with semaphore:
+            return await self.evaluate_single_sample(sample)
+
     async def async_evaluate_multiple_samples(
-        self, eval_samples: List[EvaluationSample]
+        self, eval_samples: List[EvaluationSample], semaphore_size: int = 20
     ) -> List[GroundedQAEvaluation]:
-        async with aiohttp.ClientSession() as _:
-            evaluation_coroutines = [
-                self.evaluate_single_sample(eval_sample) for eval_sample in eval_samples
-            ]
-            evaluations = await tqdm.gather(*evaluation_coroutines)
+        semaphore = asyncio.Semaphore(semaphore_size)
+        evaluation_coroutines = [
+            asyncio.create_task(
+                self.__evaluate_sample_with_semaphore(eval_sample, semaphore)
+            )
+            for eval_sample in eval_samples
+        ]
+        evaluations = await tqdm.gather(*evaluation_coroutines)
         return evaluations
 
     def evaluate_multiple_samples(
-        self, eval_samples: List[EvaluationSample]
+        self, eval_samples: List[EvaluationSample], semaphore_size: int = 20
     ) -> List[GroundedQAEvaluation]:
-        results = asyncio.run(self.async_evaluate_multiple_samples(eval_samples))
+        results = asyncio.run(
+            self.async_evaluate_multiple_samples(eval_samples, semaphore_size)
+        )
         self.logger.info(f"Cost: {self.cost:.4f}$")
         return results
 
-    def evaluate(self, eval_samples: List[EvaluationSample]) -> EvaluationsAndReport:
-        evaluations = self.evaluate_multiple_samples(eval_samples)
+    def evaluate(
+        self, eval_samples: List[EvaluationSample], semaphore_size: int = 20
+    ) -> EvaluationsAndReport:
+        evaluations = self.evaluate_multiple_samples(eval_samples, semaphore_size)
         ar_mean = np.mean(
             [
                 e.answer_relevancy.answer_relevancy
