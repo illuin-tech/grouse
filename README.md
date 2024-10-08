@@ -1,5 +1,12 @@
 # GroUSE
 
+[![arXiv](https://img.shields.io/badge/arXiv-2409.06595-b31b1b.svg?style=for-the-badge)]([https://arxiv.org/abs/2407.01449](https://arxiv.org/pdf/2409.06595))
+[![Hugging Face](https://img.shields.io/badge/Grouse_Dataset-FFD21E?style=for-the-badge&logo=huggingface&logoColor=000)](https://huggingface.co/datasets/illuin/grouse)
+[![Blog](https://img.shields.io/badge/Blog-Check%20it%20out-blue?style=for-the-badge)](https://huggingface.co/spaces/illuin/grouse)
+[![Tutorial](https://img.shields.io/badge/Tutorial-Get%20started-purple?style=for-the-badge)](https://github.com/NirDiamant/RAG_Techniques/blob/main/evaluation/evaluation_grouse.ipynb)
+
+---
+
 Evaluate Grounded Question Answering (GQA) models and GQA evaluator models. We implement the evaluation methods described in GroUSE: A Benchmark to Evaluate Evaluators in Grounded Question Answering.
 
 - [Install](#install)
@@ -85,6 +92,10 @@ sample = EvaluationSample(
 evaluator = GroundedQAEvaluator()
 evaluator.evaluate([sample])
 ```
+
+### Tutorial
+
+You can check this [tutorial](https://github.com/NirDiamant/RAG_Techniques/blob/main/evaluation/evaluation_grouse.ipynb) to get started on some examples.
 
 ## Links
 
