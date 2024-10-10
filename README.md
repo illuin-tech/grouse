@@ -1,6 +1,6 @@
 # GroUSE
 
-[![arXiv](https://img.shields.io/badge/arXiv-2409.06595-b31b1b.svg?style=for-the-badge)](https://arxiv.org/abs/2407.01449)
+[![arXiv](https://img.shields.io/badge/arXiv-2409.06595-b31b1b.svg?style=for-the-badge)](https://arxiv.org/abs/2409.06595)
 [![Hugging Face](https://img.shields.io/badge/Grouse_Dataset-FFD21E?style=for-the-badge&logo=huggingface&logoColor=000)](https://huggingface.co/datasets/illuin/grouse)
 [![Blog](https://img.shields.io/badge/Blog-Check%20it%20out-blue?style=for-the-badge)](https://huggingface.co/spaces/illuin/grouse)
 [![Tutorial](https://img.shields.io/badge/Tutorial-Get%20started-purple?style=for-the-badge)](https://github.com/NirDiamant/RAG_Techniques/blob/main/evaluation/evaluation_grouse.ipynb)
