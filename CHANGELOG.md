@@ -1,8 +1,14 @@
 # CHANGELOG
 
+## 0.4.2
+
+### Fixed
+
+- Fix completion cost computation to support more models with Litellm like vertex_ai models
+
 ## 0.4.1
 
-### Fix
+### Fixed
 
 - Fix API Connection Errors with Semaphore
 
