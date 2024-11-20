@@ -96,7 +96,7 @@ class GroundedQAEvaluator:
             loaded_response = json.loads(postprocessed_response)
             if isinstance(loaded_response, dict):
                 pair = pair_model(**loaded_response)
-                self.cost += litellm.completion_cost(response)
+                self.cost += litellm.completion_cost(response, model=self.model_name)
                 return pair.answer_2
             else:
                 raise ValueError("Response is not a dictionary")
