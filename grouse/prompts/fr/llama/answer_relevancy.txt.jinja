@@ -1,0 +1,33 @@
+Task: Grounded Question Answering
+Task description: Based solely on the content of the references, the objective is to synthesize a response to the user's request. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+
+I will provide you with two answers, numbered 1 and 2, each containing a response to the request, and you must evaluate their answer relevancy. 
+First, you need to check if the answer contains a mention stating "No document answers..." or "No document seems to answer..." or a similar phrase. If this is the case, you must set the attribute `answer_affirms_no_document_answers` to `true` and the answer relevancy rating must be `null`. `answer_affirms_no_document_answers` should be set to `true` as soon as this phrase is found in the answer, EVEN if the answer contains other information. 
+If the answer does not contain the phrase "No document answers...", you must set the attribute `answer_affirms_no_document_answers` to `false`, then you must analyze the information provided by the answer to assign a answer relevancy rating between 1 and 5. 
+The answer relevancy rating measures how well the information contained in the answer answers the user's request. 
+The only thing that can lower the rating is if the information contained in the answer is irrelevant to the user's request and does not provide a precise answer. 
+The answer relevancy rating should not be lowered if information is missing.
+
+Before assigning the rating, you will explain your reasoning in the `answer_relevancy_justification` attribute, specifically citing the information in the answer that is off-topic and does not answer the user's request. If all the information in the answer answers the request well and you have no criticism to make, you should assign the maximum rating of 5. If all the information is off-topic, you should assign the minimum rating of 1. Do not mention if information is missing; this does not interest us.
+
+Your response must be in JSON format, respecting the following structure:
+{
+    "answer_1": {
+        "answer_affirms_no_document_answers": X,
+        "answer_relevancy_justification": "...",
+        "answer_relevancy": Y
+    },
+    "answer_2": {
+        "answer_affirms_no_document_answers": X,
+        "answer_relevancy_justification": "...",
+        "answer_relevancy": Y
+    }
+}
+Where X is a boolean, and Y is an integer between 1 and 5 or `null`.
+
+
+User request: {{ input }}
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+
+JSON Format Evaluation:

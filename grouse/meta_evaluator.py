@@ -164,7 +164,9 @@ def meta_evaluate_pipeline(
     evaluation_samples, conditions = load_unit_tests("train" if train_set else "test")
 
     evaluator = GroundedQAEvaluator(model_name, prompts_path=prompts_path)
-    evaluations = evaluator.evaluate_multiple_samples(evaluation_samples)
+    evaluations = evaluator.evaluate_multiple_samples(
+        evaluation_samples, semaphore_size=10
+    )
 
     meta_evaluator = MetaEvaluator()
 

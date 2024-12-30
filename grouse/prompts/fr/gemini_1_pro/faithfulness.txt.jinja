@@ -1,0 +1,73 @@
+[TASK]
+Task: Grounded Question Answering
+Based solely on the content of the references, the objective is to synthesize a response to the user's request. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+[/TASK]
+[EVALUATION INSTRUCTIONS]
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user request. I want you to assign each answer a boolean faithfulness score. A answer is faithful if:
+- Each statement made by the answer is followed by a source indicating the reference from which it is drawn.
+- The information preceding the source actually comes from the corresponding reference.
+- The information preceding the source is in agreement with the corresponding reference, and does not assert facts different from those indicated in the reference.
+In all other cases, the response is considered non-faithful.
+Faithfulness cannot be evaluated if the answer asserts that no document answers the question, and it provides no related information, then it is valued as null.
+
+Scoring:
+null - The answer asserts that no document answers the question, and provides no related information.
+1 - All sentences in the answer cite their sources, and are in agreement with the cited sources.
+0 - At least one sentence in the response does not cite its sources, or cites a wrong source, or modifies the content from the references, or asserts something that is not supported by the cited references.
+
+Before assigning each score, you will start by copying the answer into two fields:
+- `synonym_of_no_document_answers` must contain a sentence synonymous with "No document answers your question", if it exists in the answer, otherwise this field must be an empty string.
+- `rest_of_the_answer` must contain all the rest of the answer that has not been copied into the first field. If there is nothing else, it can also be an empty string.
+-> If `rest_of_the_answer` is empty, you can leave `analysis_of_the_rest_of_the_answer_sentence_by_sentence` as an empty list, and faithfulness must be null.
+-> If `rest_of_the_answer` is not empty, I want you to copy each sentence from the rest of the answer, and for each source that follows that sentence you extract from the corresponding reference the passage that says the same thing as the sentence. Then you will confirm whether the three criteria are validated or not: 1) a reference follows the sentence, 2) the reference following the sentence is correct, and 3) the sentence does not distort or modify the content of the references.
+
+Your response should respect the following JSON format:
+{
+    "answer_1": {
+        "synonym_of_no_document_answers": "...",
+        "rest_of_the_answer": "...",
+        "analysis_of_the_rest_of_the_answer_sentence_by_sentence": [
+            {
+                "sentence" : "...",
+                "sources_of_the_sentence": [Z1, Z2],
+                "source_excerpt_supporting_the_sentence": {"Z1": ["...", "..."], "Z2": []},
+                "criterion_1": "...",
+                "criterion_2": "...",
+                "criterion_3": "..."
+            },
+            ...
+        ],
+        "faithfulness_justification": "...",
+        "faithfulness": Y
+    },
+    "answer_2": {
+        "synonym_of_no_document_answers": "...",
+        "rest_of_the_answer": "...",
+        "analysis_of_the_rest_of_the_answer_sentence_by_sentence": [
+            {
+                "sentence" : "...",
+                "sources_of_the_sentence": [Z1, Z2],
+                "source_excerpt_supporting_the_sentence": {"Z1": ["...", "..."], "Z2": []},
+                "criterion_1": "...",
+                "criterion_2": "...",
+                "criterion_3": "..."
+            },
+            ...
+        ],
+        "faithfulness_justification": "...",
+        "faithfulness": Y
+    }
+}
+Where "..." is a string, X is a boolean, Z1 and Z2 are integers, and Y is either a boolean or `null`.
+[/EVALUATION INSTRUCTIONS]
+[SAMPLE]
+List of references:
+{%- for context in contexts %}
+Reference {{ loop.index }}: {{ context }}
+{%- endfor %}
+[/SAMPLE]
+[TO EVALUATE]
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+[/TO EVALUATE]
+Don't forget that the response should be in json format.

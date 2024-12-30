@@ -1,0 +1,29 @@
+Task: Grounded Question Answering
+Task description: Based solely on the content of the references, the objective is to synthesize a response to the user's request. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user request, and you must evaluate their completeness. First, you will examine the REFERENCES to compile a list of relevant information for responding to the request found within them. If this list is empty and the references do not contain any interesting information for responding to the request, then the completeness score should be `null`.
+If this list is not empty, then you will evaluate with a score between 1 and 5 how much of these facts are mentioned by the answer. If all the relevant information from the list is also found in the answer, you should assign the maximum score of 5. If none of the relevant information from the list is mentioned in the answer, you should assign the minimum score of 1.
+Do not mention if there are superfluous information in the answer, or if there are errors in the references of the answer, as we are not interested in these for evaluating completeness.
+
+Your response should be in JSON format, following this structure:
+{
+    "list_of_facts_responding_to_request": ["...", ...],
+    "answer_1": {
+        "completeness_justification": "...",
+        "completeness": X
+    },
+    "answer_2": {
+        "completeness_justification": "...",
+        "completeness": X
+    }
+}
+Where X is an integer between 1 and 5 or `null`
+
+List of references :
+{%- for context in contexts %}
+Reference {{ loop.index }}: {{ context }}
+{%- endfor %}
+User request: {{ input }}
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+JSON Format Evaluation:

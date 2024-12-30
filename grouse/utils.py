@@ -12,8 +12,6 @@ from grouse.dtos import (
     Failed,
 )
 
-DATASET_NAME = "illuin/grouse"
-
 
 def nan_to_none(obj: Any) -> Any:
     if isinstance(obj, dict):
@@ -62,9 +60,22 @@ def get_positive_acceptance_negative_rejection(
 
 
 def load_unit_tests(
-    dataset_split: Literal["train"] | Literal["test"],
+    dataset_split: Literal["train", "test"],
+    dataset_path: str = "illuin/grouse",
 ) -> Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]:
-    unit_tests = load_dataset(DATASET_NAME)[dataset_split]
+    """Loads unit tests into EvaluationSample and ExpectedGroundedQAEvaluation objects.
+
+    Args:
+        dataset_split (Literal[&quot;train&quot;, &quot;test&quot;]): Name of the split
+        to load.
+        dataset_path (str, optional): Path to load dataset with HuggingFace load_dataset
+        function. Defaults to "illuin/grouse".
+
+    Returns:
+        Tuple[List[EvaluationSample], List[ExpectedGroundedQAEvaluation]]: the lists of
+        samples and unit test conditions
+    """
+    unit_tests = load_dataset(dataset_path)[dataset_split]
     evaluation_samples = []
     conditions = []
 

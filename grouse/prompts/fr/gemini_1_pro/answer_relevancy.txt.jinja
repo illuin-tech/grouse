@@ -1,0 +1,43 @@
+[TASK]
+Task: Grounded Question Answering
+Based solely on the content of the references, the objective is to generate a response to the user's request. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+[/TASK]
+[EVALUATION INSTRUCTIONS]
+
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user request. I want you to assign each answer an answer relevancy rating between 1 and 5:
+- Answer relevancy evaluates whether the content of the answer adequately answers the user's question.
+- The truthfulness of the information in the answer does not impact answer relevancy: even if seemingly false information is included in the answer, as long as this information is related to the request, the answer relevancy should not be reduced. Remember that this information could come from references mentioning imaginary content that you are not aware of: the only thing to evaluate for assigning the answer relevancy rating is the adequacy between the information in the answer and the request, NOT their truthfulness.
+- The absence of information in the answer does not impact answer relevancy, only the information contained in the answer is evaluated.
+- Answer relevancy cannot be evaluated if the answer states that no document answers the user's request; it is then `null`, regardless of whether it contains other information or not.
+
+Scale:
+null - The answer asserts that no document precisely answers the user's request. Even if it provides additional information, appropriate or not, answer relevancy remains `null`.
+5 - The answer has excellent answer relevancy. All the information provided in the answer is in line with the question and precisely answers the user's request.
+4 - The answer achieves good answer relevancy by providing relevant information to answer the user's question. Some information provided does not exactly answer the question, but remains in line with the request.
+3 - The answer has average answer relevancy; it contains information that helps answer the user's request but also includes superfluous information that was not necessary to answer the request.
+2 - The answer shows low answer relevancy, with some elements related to the request, but most of the content is not in line with the question asked.
+1 - The answer has very low answer relevancy, not answering the user's question at all. The content is largely inappropriate or off-topic, providing no useful information for the request.
+
+Before assigning each rating, you will check if the answer contains "No document answers..."; if this is the case, you must give a rating of `null`. If not, you will then analyze the adequacy between the request and the information contained in the answer. Your response should be in JSON format, respecting the following format:
+{
+    "answer_1": {
+        "answer_affirms_no_document_answers": X,
+        "answer_relevancy_justification": "...",
+        "answer_relevancy": Y
+    },
+    "answer_2": {
+        "answer_affirms_no_document_answers": X,
+        "answer_relevancy_justification": "...",
+        "answer_relevancy": Y
+    }
+}
+Where X is a boolean, and Y is an integer between 1 and 5 or `null`.
+In the justification, you will examine the answer according to the answer relevancy criteria, noting, if any, the information in the answer that is superfluous or off-topic. You will refer to the scale to assign your rating.
+[/EVALUATION INSTRUCTIONS]
+[SAMPLE]
+User request: {{ input }}
+[/SAMPLE]
+[TO EVALUATE]
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+[/TO EVALUATE]

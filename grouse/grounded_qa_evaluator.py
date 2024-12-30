@@ -7,7 +7,6 @@ from typing import List, Optional
 
 import litellm
 import numpy as np
-from importlib_resources import files
 from jinja2 import Environment, FileSystemLoader
 from pydantic_core import ValidationError
 from tqdm.asyncio import tqdm
@@ -31,6 +30,9 @@ from grouse.dtos import (
 )
 from grouse.utils import get_positive_acceptance_negative_rejection
 
+POST_PROCESS_PATTERN = r"```[a-zA-Z]*\n(.*?)```"
+DEFAULT_PROMPTS_PATH = "grouse/prompts/en/gpt4"
+
 
 class GroundedQAEvaluator:
     def __init__(
@@ -42,7 +44,7 @@ class GroundedQAEvaluator:
         self.model_name = model_name
         if prompts_path is None:
             self.environment = Environment(
-                loader=FileSystemLoader(files("grouse").joinpath("gpt4_prompts"))
+                loader=FileSystemLoader(DEFAULT_PROMPTS_PATH)
             )
         else:
             self.environment = Environment(loader=FileSystemLoader(prompts_path))
@@ -63,21 +65,28 @@ class GroundedQAEvaluator:
 
     @staticmethod
     def postprocess_response(response_str: str) -> str:
-        pattern = r"```[a-zA-Z]*\n(.*?)```"
-        matches = re.findall(pattern, response_str, re.DOTALL)
+        matches = re.findall(POST_PROCESS_PATTERN, response_str, re.DOTALL)
 
         if matches:
             return matches[0].strip()
         else:
             return response_str.strip()
 
-    async def call_llm(self, prompt: str, pair_model: ScorePair) -> Score | Failed:
+    async def call_llm(
+        self, prompt: str, pair_model: ScorePair, **kwargs
+    ) -> Score | Failed:
         try:
             if "o1" in self.model_name:
                 kwargs = {}
             else:
-                kwargs = {"temperature": 0.01, "max_tokens": 2048}
-            if "-turbo" in self.model_name or "4o" in self.model_name:
+                if not kwargs:
+                    kwargs = {"temperature": 0.01, "max_tokens": 2048}
+            if (
+                "-turbo" in self.model_name
+                or "4o" in self.model_name
+                or "mixtral" in self.model_name
+                or "llama-v3p1-405" in self.model_name
+            ):
                 response = await litellm.acompletion(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
@@ -90,6 +99,10 @@ class GroundedQAEvaluator:
                     messages=[{"role": "user", "content": prompt}],
                     **kwargs,
                 )
+
+            if response.choices[0].message.content is None:
+                return Failed(error="Response is None")
+
             postprocessed_response = self.postprocess_response(
                 response.choices[0].message.content
             )
@@ -101,12 +114,19 @@ class GroundedQAEvaluator:
             else:
                 raise ValueError("Response is not a dictionary")
 
-        except (ValidationError, json.decoder.JSONDecodeError, ValueError) as val_error:
-            logging.debug(
-                f"Call to {self.model_name} with prompt: {prompt}\n"
-                f"returned the following error:\n{val_error}"
-            )
-            return Failed(error=str(val_error))
+        except (ValidationError, json.decoder.JSONDecodeError, ValueError) as error:
+            # Make the LLM call with more max_tokens if the error is due to the response
+            # being too short. Use kwargs hack to avoid infinite recursion
+            if not kwargs and "Unterminated string starting" in str(error):
+                return await self.call_llm(
+                    prompt, pair_model, temperature=0.01, max_tokens=4096
+                )
+            else:
+                logging.debug(
+                    f"Call to {self.model_name} with prompt: {prompt}\n"
+                    f"returned the following error:\n{error}"
+                )
+                return Failed(error=str(error))
 
     async def evaluate_answer_relevancy(
         self, eval_sample: EvaluationSample

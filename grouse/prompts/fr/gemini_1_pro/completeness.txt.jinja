@@ -1,0 +1,56 @@
+[TASK]
+Task: Grounded Question Answering
+Based solely on the content of the references, the objective is to synthesize a response to the user's request. Each statement must be followed by the reference of the source passage, in the format [i] where i is the number of the reference. If no passage seems relevant, the answer should begin with "No document seems to precisely answer your question" and may be supplemented with related sourced information.
+[/TASK]
+[EVALUATION INSTRUCTIONS]
+I will provide you with two answers, numbered 1 and 2, each containing a response to the user's request. I want you to assign an completeness score between 1 and 5 to each answer:
+- The only condition for a answer to be complete is the inclusion of at least all the information from the references that are relevant to the question asked.
+- The presence of information in the answer unrelated to the question does not impact completeness.
+- The presence of information in the answer not derived from the references does not impact completeness.
+- Possible errors in the sources citing the references do not impact completeness.
+- Completeness cannot be evaluated if the references contain no information that precisely answers the user's request, in which case the score takes the value null.
+
+Scale:
+null - The references contained no relevant information to precisely answer the user's question.
+5 - The answer is very exhaustive; it contains all the relevant information from the references.
+4 - The answer covers most of the relevant information in depth.
+3 - The answer reasonably addresses a number of relevant aspects.
+2 - The answer covers only a minimal part of the relevant information.
+1 - The answer covers none of the relevant information.
+
+Before assigning each score, you will always start by analyzing the references: for each provided reference, you will copy into a list the excerpts from the reference that answer the user's question. This list can obviously be empty if the reference contains no relevant information for the question.
+After this analysis of the references, you will check whether all the lists are empty or not in `all_lists_empty`.
+If `all_lists_empty == true`, you will set the completeness to null for both answers.
+If `all_lists_empty == false`, the completeness MUST NEVER be null. You MUST analyze which portion of this information is present or absent in the answers to evaluate the completeness score by referring to the scale.
+Your response should respect the following JSON format:
+{
+    "reference_analysis": {
+        "reference 1": [X, X],
+        "reference 2": [],
+        "reference 3": [X],
+        ...
+    },
+    "all_lists_empty": Y,
+    "answer_1": {
+        "completeness_justification": "...",
+        "completeness": Z
+    },
+    "answer_2": {
+        "completeness_justification": "...",
+        "completeness": Z
+    }
+}
+Where X are strings extracted directly from the references and answering the request, Y is a boolean, Z is an integer between 1 and 5 or null.
+[/EVALUATION INSTRUCTIONS]
+[SAMPLE]
+List of references :
+{%- for context in contexts %}
+Reference {{ loop.index }}: {{ context }}
+{%- endfor %}
+User request: {{ input }}
+[/SAMPLE]
+[TO EVALUATE]
+Answer 1: {{ expected_output }}
+Answer 2: {{ actual_output }}
+[/TO EVALUATE]
+Don't forget that the response should be in json format.
